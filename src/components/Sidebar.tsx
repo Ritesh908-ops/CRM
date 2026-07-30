@@ -121,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Actions & User Profile Section */}
-        <div className="sb-bottom-wrapper" style={{ padding: '14px 12px', gap: '10px' }}>
+        <div className="sb-bottom-wrapper" style={{ padding: '12px', gap: '10px' }}>
           {/* Export All Leads */}
           <button
             onClick={() => {
@@ -135,16 +135,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Export All Leads (.CSV)</span>
           </button>
 
-          {/* User Account Profile Card */}
+          {/* User Account Profile Card with Dedicated Logout Button */}
           {user && (
             <div className="relative" ref={dropdownRef}>
               <div 
-                onClick={() => setShowProfileMenu(prev => !prev)}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-2 rounded-xl bg-white border border-gray-200 shadow-sm"
                 style={{ width: '100%' }}
               >
-                <div className="flex items-center gap-2.5 min-w-0" style={{ overflow: 'hidden' }}>
-                  <div className="av shrink-0" style={{ width: '34px', height: '34px', fontSize: '13px', borderRadius: '10px' }}>
+                {/* User Info (Click opens menu) */}
+                <div 
+                  onClick={() => setShowProfileMenu(prev => !prev)}
+                  className="flex items-center gap-2 min-w-0 cursor-pointer flex-1 py-0.5"
+                >
+                  <div className="av shrink-0" style={{ width: '32px', height: '32px', fontSize: '12px', borderRadius: '8px' }}>
                     {user.email ? user.email[0].toUpperCase() : 'A'}
                   </div>
                   <div className="flex flex-col min-w-0 leading-tight" style={{ overflow: 'hidden' }}>
@@ -157,7 +160,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
 
-                <ChevronUp size={14} className="text-gray-400 shrink-0 ml-1" />
+                {/* Right Action Icons: Direct Logout Button + Chevron */}
+                <div className="flex items-center gap-1 shrink-0 ml-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onCloseMobileMenu) onCloseMobileMenu();
+                      logout();
+                    }}
+                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                    title="Log Out"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <LogOut size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileMenu(prev => !prev)}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                </div>
               </div>
 
               {/* Profile Menu Popup (Opens upwards) */}
