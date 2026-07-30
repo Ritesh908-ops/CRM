@@ -56,30 +56,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileMenuOpen && (
         <div 
           onClick={onCloseMobileMenu}
-          className="sidebar-backdrop md:hidden"
+          className="sidebar-backdrop"
         />
       )}
 
       <aside className={`sb ${isMobileMenuOpen ? 'open' : ''}`}>
         {/* Brand Header */}
-        <div className="sb-brand flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '64px', padding: '0 16px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="sb-logo">
               <Building2 size={20} />
             </div>
-            <div className="flex flex-col">
-              <span className="sb-name">Khatabook CRM</span>
-              <span className="sb-sub flex items-center gap-1">
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
+              <span className="sb-name" style={{ fontSize: '14.5px', fontWeight: 800, color: '#1C1C1E', whiteSpace: 'nowrap' }}>Khatabook CRM</span>
+              <span className="sb-sub" style={{ fontSize: '10.5px', color: '#6E6E73', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', whiteSpace: 'nowrap' }}>
                 <Sparkles size={11} className="text-indigo-600" />
                 <span>Monthly Data Hub</span>
               </span>
             </div>
           </div>
 
-          {onCloseMobileMenu && (
+          {/* Close button ONLY rendered on mobile when drawer is open */}
+          {isMobileMenuOpen && (
             <button 
               onClick={onCloseMobileMenu} 
-              className="md:hidden text-gray-400 hover:text-gray-700 p-1"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#6B7280', display: 'flex', alignItems: 'center' }}
               title="Close Sidebar"
             >
               <X size={20} />
@@ -140,14 +141,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div 
                 onClick={() => setShowProfileMenu(prev => !prev)}
                 className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                style={{ width: '100%' }}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="av shrink-0" style={{ width: '36px', height: '36px', fontSize: '13px', borderRadius: '10px' }}>
-                    {user.email[0].toUpperCase()}
+                <div className="flex items-center gap-2.5 min-w-0" style={{ overflow: 'hidden' }}>
+                  <div className="av shrink-0" style={{ width: '34px', height: '34px', fontSize: '13px', borderRadius: '10px' }}>
+                    {user.email ? user.email[0].toUpperCase() : 'A'}
                   </div>
-                  <div className="flex flex-col min-w-0 leading-tight">
-                    <span className="font-bold text-xs text-gray-900 truncate">
-                      {user.name || 'Admin User'}
+                  <div className="flex flex-col min-w-0 leading-tight" style={{ overflow: 'hidden' }}>
+                    <span className="font-bold text-xs text-gray-900 truncate" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user.name || 'Khatabook Admin'}
                     </span>
                     <span className="text-[10px] font-semibold text-indigo-600 flex items-center gap-0.5 mt-0.5 truncate">
                       <ShieldCheck size={10} className="shrink-0" /> {user.role}
@@ -165,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   style={{ animation: 'sheetIn 0.15s ease-out' }}
                 >
                   <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex flex-col gap-1">
-                    <div className="font-bold text-xs text-gray-900">{user.name || 'Admin User'}</div>
+                    <div className="font-bold text-xs text-gray-900">{user.name || 'Khatabook Admin'}</div>
                     <div className="text-xs text-gray-500 truncate">{user.email}</div>
                     <div className="text-[10px] font-bold text-indigo-600 flex items-center gap-1 mt-1">
                       <ShieldCheck size={12} /> System Role: {user.role}
