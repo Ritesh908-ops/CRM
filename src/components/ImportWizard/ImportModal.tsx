@@ -40,25 +40,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleLoadSampleData = () => {
-    setFile(null);
-    setRawText(RAW_SAMPLE_CSV_TEXT);
-  };
-
-  const handleAnalyzeCSV = async () => {
-    if (!file && !rawText) return;
+  const handleAnalyzeCSV = async (overrideSource?: File | string) => {
+    const source = overrideSource || file || rawText;
+    if (!source) return;
 
     setIsProcessing(true);
     setParseErrors([]);
 
     try {
-      const source = file || rawText;
       const parseRes = await parseCSVFile(source, batchName);
       
       if (parseRes.errors && parseRes.errors.length > 0) {
@@ -66,6 +55,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       }
 
       if (parseRes.leads.length === 0) {
+        setParseErrors(prev => [...prev, 'No valid records found in the uploaded file. Check CSV headers or format.']);
         setIsProcessing(false);
         return;
       }
@@ -78,6 +68,20 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      handleAnalyzeCSV(selectedFile);
+    }
+  };
+
+  const handleLoadSampleData = () => {
+    setFile(null);
+    setRawText(RAW_SAMPLE_CSV_TEXT);
+    handleAnalyzeCSV(RAW_SAMPLE_CSV_TEXT);
   };
 
   const handleCommitImport = async () => {
@@ -258,131 +262,51 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   <Layers size={16} className="ca" />
                   Choose Duplicate Resolution Strategy
                 </label>
-                <div className="fgrid-3">
-                  <label className="fsec" style={{ cursor: 'pointer', marginBottom: 0, borderColor: duplicateStrategy === 'skip' ? 'var(--accent)' : undefined }}>
-                    <div className="flex-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="dupStrategy" 
-                        value="skip" 
-                        checked={duplicateStrategy === 'skip'} 
-                        onChange={() => setDuplicateStrategy('skip')} 
-                      />
-                      <span className="fwb text-sm">Skip Duplicates</span>
-                    </div>
-                    <p className="muted text-xs" style={{ marginTop: '8px' }}>
-                      Keep existing database records untouched. Ignore incoming duplicates.
-                    </p>
-                  </label>
 
-                  <label className="fsec" style={{ cursor: 'pointer', marginBottom: 0, borderColor: duplicateStrategy === 'update' ? 'var(--accent)' : undefined }}>
-                    <div className="flex-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="dupStrategy" 
-                        value="update" 
-                        checked={duplicateStrategy === 'update'} 
-                        onChange={() => setDuplicateStrategy('update')} 
-                      />
-                      <span className="fwb text-sm">Update Existing</span>
-                    </div>
-                    <p className="muted text-xs" style={{ marginTop: '8px' }}>
-                      Overwrite existing lead data with latest monthly CSV updates while preserving pipeline status.
-                    </p>
-                  </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateStrategy('skip')}
+                    className={`p-3 rounded-xl border text-left transition-all ${duplicateStrategy === 'skip' ? 'bg-indigo-50 border-indigo-600 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <div className="font-bold text-xs text-gray-900 mb-1">Skip Duplicates</div>
+                    <div className="text-[11px] text-gray-500 leading-tight">Ignore duplicate records. Only import brand new entities.</div>
+                  </button>
 
-                  <label className="fsec" style={{ cursor: 'pointer', marginBottom: 0, borderColor: duplicateStrategy === 'keep_all' ? 'var(--accent)' : undefined }}>
-                    <div className="flex-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="dupStrategy" 
-                        value="keep_all" 
-                        checked={duplicateStrategy === 'keep_all'} 
-                        onChange={() => setDuplicateStrategy('keep_all')} 
-                      />
-                      <span className="fwb text-sm">Import All</span>
-                    </div>
-                    <p className="muted text-xs" style={{ marginTop: '8px' }}>
-                      Create separate duplicate entries without overwriting existing data.
-                    </p>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateStrategy('update')}
+                    className={`p-3 rounded-xl border text-left transition-all ${duplicateStrategy === 'update' ? 'bg-indigo-50 border-indigo-600 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <div className="font-bold text-xs text-gray-900 mb-1">Update Existing</div>
+                    <div className="text-[11px] text-gray-500 leading-tight">Overwrite existing records with newest contact & capital data.</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateStrategy('keep_all')}
+                    className={`p-3 rounded-xl border text-left transition-all ${duplicateStrategy === 'keep_all' ? 'bg-indigo-50 border-indigo-600 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <div className="font-bold text-xs text-gray-900 mb-1">Keep All Variants</div>
+                    <div className="text-[11px] text-gray-500 leading-tight">Import all records creating unique composite entries.</div>
+                  </button>
                 </div>
               </div>
-
-              {/* Side-by-Side Duplicate Conflict Table */}
-              {analysisResult.duplicateCount > 0 && (
-                <div className="flex-col gap-2">
-                  <div className="flex-center justify-between">
-                    <h4 className="fsec-ttl co flex-center gap-2" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
-                      <AlertTriangle size={14} />
-                      Duplicate Conflict Inspection Table
-                    </h4>
-                    <span className="muted text-xs">
-                      Matched by Entity ID + Director Name
-                    </span>
-                  </div>
-
-                  <div className="card">
-                    <div className="tbl-wrap" style={{ maxHeight: '240px' }}>
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Entity ID</th>
-                            <th>Company Name</th>
-                            <th>Director Name</th>
-                            <th>Existing Status</th>
-                            <th className="tr">Conflict Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {analysisResult.duplicateItems.map((dup, idx) => (
-                            <tr key={idx}>
-                              <td className="fwb ca">{dup.incomingRecord.entityId}</td>
-                              <td className="fw5">{dup.incomingRecord.name}</td>
-                              <td>{dup.incomingRecord.directorName}</td>
-                              <td>
-                                <span className="badge b-crr">
-                                  {dup.existingRecord?.status || 'Existing'}
-                                </span>
-                              </td>
-                              <td className="tr fwb co">
-                                {duplicateStrategy === 'skip' ? 'Will Skip' : duplicateStrategy === 'update' ? 'Will Overwrite' : 'Will Add Copy'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* STEP 3: Completion Summary */}
+          {/* STEP 3: Final Import Summary */}
           {step === 3 && importSummary && (
-            <div className="tc flex-col gap-6" style={{ padding: '32px 0' }}>
-              <div className="flex-center" style={{ justifyContent: 'center' }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: 'rgba(48,209,88,0.15)',
-                  border: '1px solid var(--green)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--green)'
-                }}>
-                  <CheckCircle2 size={32} />
-                </div>
+            <div className="flex-col gap-6 text-center py-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                <CheckCircle2 size={28} />
               </div>
-              <div className="flex-col gap-2">
-                <h3 className="text-lg fwb">Monthly Import Completed Successfully!</h3>
-                <p className="muted text-sm">Your CRM dataset and IndexedDB storage have been updated.</p>
+              <div>
+                <h4 className="text-lg font-extrabold text-gray-900">Import Batch Successful!</h4>
+                <p className="text-xs text-gray-500 mt-1">Your corporate dataset has been committed into IndexedDB CRM database.</p>
               </div>
 
-              <div className="stats" style={{ maxWidth: '480px', margin: '0 auto' }}>
+              <div className="grid grid-cols-3 gap-3">
                 <div className="stat">
                   <div className="stat-n cg">{importSummary.added}</div>
                   <div className="stat-l cg">New Added</div>
@@ -408,7 +332,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 Cancel
               </button>
               <button
-                onClick={handleAnalyzeCSV}
+                onClick={() => handleAnalyzeCSV()}
                 disabled={(!file && !rawText) || isProcessing}
                 className="btn btn-primary btn-sm"
               >

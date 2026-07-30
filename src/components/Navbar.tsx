@@ -37,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onToggleMobileMenu && (
           <button
             onClick={onToggleMobileMenu}
-            className="md:hidden btn btn-ghost p-2 rounded-xl"
+            className="mobile-only-btn btn btn-ghost"
             title="Toggle Menu"
             style={{ width: '38px', height: '38px', borderRadius: '10px', padding: 0 }}
           >
