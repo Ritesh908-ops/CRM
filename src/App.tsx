@@ -102,6 +102,8 @@ function MainCRMApp() {
     }
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="app-shell">
       {/* Sidebar Navigation */}
@@ -110,6 +112,8 @@ function MainCRMApp() {
         setActiveTab={setActiveTab}
         totalLeadsCount={leads.length}
         onExportCSV={() => handleExportCSV(leads)}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Workspace */}
@@ -123,6 +127,8 @@ function MainCRMApp() {
           }}
           openImportModal={() => setIsImportModalOpen(true)}
           onResetSampleData={handleResetSampleData}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+          isMobileMenuOpen={isMobileMenuOpen}
         />
 
         {/* View Switcher */}

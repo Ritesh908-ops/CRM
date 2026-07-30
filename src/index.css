@@ -525,11 +525,109 @@ tr.selected-row td { background: #EEF2FF !important; }
 .empty h3 { font-size: 15px; color: var(--text); margin-bottom: 6px; font-weight: 700; }
 .empty p { font-size: 12.5px; }
 
-/* Responsive */
+/* ── Mobile Responsive System ── */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 140;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 768px) {
-  .sb { width: 64px; }
-  .sb-name, .sb-sub, .sb-ui, .nsec, .ni-txt, .ni-bd { display: none !important; }
-  .ni { justify-content: center; padding: 12px; }
-  .content { padding: 14px !important; }
-  .fgrid-3, .fgrid-4 { grid-template-columns: 1fr; }
+  .app-shell {
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .sb {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px !important;
+    z-index: 150 !important;
+    transform: translateX(-100%);
+    transition: transform 0.28s var(--spring) !important;
+    box-shadow: 0 0 30px rgba(0,0,0,0.15) !important;
+  }
+
+  .sb.open {
+    transform: translateX(0) !important;
+  }
+
+  .sb-name, .sb-sub, .sb-ui, .nsec, .ni-txt, .ni-bd {
+    display: inline-block !important;
+  }
+
+  .topbar {
+    padding: 0 16px !important;
+  }
+
+  .tsearch {
+    width: 150px !important;
+  }
+  .tsearch:focus {
+    width: 180px !important;
+  }
+
+  .content {
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+
+  .card, .fsec {
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .stat {
+    padding: 14px !important;
+  }
+
+  .stat-n {
+    font-size: 20px !important;
+  }
+
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .fgrid-3, .fgrid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 0 !important;
+  }
+
+  .drawer-body {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

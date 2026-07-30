@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, RefreshCw, FileText, Upload } from 'lucide-react';
+import { Search, RefreshCw, FileText, Upload, Menu, X } from 'lucide-react';
 import { RAW_SAMPLE_CSV_TEXT } from '../mockData/sampleData';
 
 interface NavbarProps {
@@ -7,13 +7,17 @@ interface NavbarProps {
   setSearchQuery: (q: string) => void;
   openImportModal: () => void;
   onResetSampleData: () => void;
+  onToggleMobileMenu?: () => void;
+  isMobileMenuOpen?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
   setSearchQuery,
   openImportModal,
-  onResetSampleData
+  onResetSampleData,
+  onToggleMobileMenu,
+  isMobileMenuOpen
 }) => {
   const handleDownloadSampleCSV = () => {
     const blob = new Blob([RAW_SAMPLE_CSV_TEXT], { type: 'text/tab-separated-values;charset=utf-8;' });
@@ -28,15 +32,26 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="topbar">
-      {/* Global Search Bar */}
-      <div className="tb-l">
+      {/* Left: Mobile Menu Toggle & Global Search */}
+      <div className="tb-l flex items-center gap-2">
+        {onToggleMobileMenu && (
+          <button
+            onClick={onToggleMobileMenu}
+            className="md:hidden btn btn-ghost p-2 rounded-xl"
+            title="Toggle Menu"
+            style={{ width: '38px', height: '38px', borderRadius: '10px', padding: 0 }}
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
+
         <div className="sw">
           <Search size={15} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search entity, director, email..."
+            placeholder="Search entity, director..."
             className="tsearch"
           />
         </div>

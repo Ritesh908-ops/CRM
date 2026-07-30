@@ -1,5 +1,5 @@
 -- ====================================================================
--- CorpPulse CRM - Supabase PostgreSQL Database Schema
+-- Khatabook CRM - Supabase PostgreSQL Database Schema
 -- Run this script in the Supabase SQL Editor (Dashboard -> SQL Editor)
 -- ====================================================================
 
@@ -66,7 +66,18 @@ ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
--- 7. Create RLS Policies (Allow Read/Write for Authenticated Users)
+-- 7. Drop existing policies if re-running
+DROP POLICY IF EXISTS "Allow public read access to leads" ON public.leads;
+DROP POLICY IF EXISTS "Allow authenticated insert to leads" ON public.leads;
+DROP POLICY IF EXISTS "Allow authenticated update to leads" ON public.leads;
+DROP POLICY IF EXISTS "Allow authenticated delete to leads" ON public.leads;
+
+DROP POLICY IF EXISTS "Allow public read access to batches" ON public.batches;
+DROP POLICY IF EXISTS "Allow authenticated insert to batches" ON public.batches;
+
+DROP POLICY IF EXISTS "Allow public read user_roles" ON public.user_roles;
+
+-- 8. Create RLS Policies (Allow Read/Write for Authenticated and Public Access)
 CREATE POLICY "Allow public read access to leads" ON public.leads FOR SELECT USING (true);
 CREATE POLICY "Allow authenticated insert to leads" ON public.leads FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow authenticated update to leads" ON public.leads FOR UPDATE USING (true);
@@ -77,4 +88,4 @@ CREATE POLICY "Allow authenticated insert to batches" ON public.batches FOR INSE
 
 CREATE POLICY "Allow public read user_roles" ON public.user_roles FOR SELECT USING (true);
 
--- Done! Tables, Indexes, and RLS policies ready.
+-- Done! Tables, Indexes, and RLS policies are completely configured for Khatabook CRM.
