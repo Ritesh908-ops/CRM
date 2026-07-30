@@ -121,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Actions & User Profile Section */}
-        <div className="sb-bottom-wrapper" style={{ padding: '12px', gap: '10px' }}>
+        <div className="sb-bottom-wrapper" style={{ padding: '12px', gap: '10px', flexShrink: 0 }}>
           {/* Export All Leads */}
           <button
             onClick={() => {
@@ -135,33 +135,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Export All Leads (.CSV)</span>
           </button>
 
-          {/* User Account Profile Card with Dedicated Logout Button */}
+          {/* User Account Profile Card with Rock-Solid Single-Row Flex Layout */}
           {user && (
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative" ref={dropdownRef} style={{ width: '100%' }}>
               <div 
-                className="flex items-center justify-between p-2 rounded-xl bg-white border border-gray-200 shadow-sm"
-                style={{ width: '100%' }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between', 
+                  width: '100%', 
+                  padding: '8px 10px', 
+                  background: '#FFFFFF', 
+                  border: '1px solid rgba(60,60,67,0.14)', 
+                  borderRadius: '12px', 
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)' 
+                }}
               >
-                {/* User Info (Click opens menu) */}
+                {/* Left: Avatar + Text */}
                 <div 
                   onClick={() => setShowProfileMenu(prev => !prev)}
-                  className="flex items-center gap-2 min-w-0 cursor-pointer flex-1 py-0.5"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, cursor: 'pointer' }}
                 >
-                  <div className="av shrink-0" style={{ width: '32px', height: '32px', fontSize: '12px', borderRadius: '8px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #4F46E5, #6366F1)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, flexShrink: 0 }}>
                     {user.email ? user.email[0].toUpperCase() : 'A'}
                   </div>
-                  <div className="flex flex-col min-w-0 leading-tight" style={{ overflow: 'hidden' }}>
-                    <span className="font-bold text-xs text-gray-900 truncate" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#1C1C1E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {user.name || 'Khatabook Admin'}
                     </span>
-                    <span className="text-[10px] font-semibold text-indigo-600 flex items-center gap-0.5 mt-0.5 truncate">
-                      <ShieldCheck size={10} className="shrink-0" /> {user.role}
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#4F46E5', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap', marginTop: '1px' }}>
+                      <ShieldCheck size={10} style={{ flexShrink: 0 }} /> {user.role}
                     </span>
                   </div>
                 </div>
 
-                {/* Right Action Icons: Direct Logout Button + Chevron */}
-                <div className="flex items-center gap-1 shrink-0 ml-1">
+                {/* Right: Direct Logout Button + Chevron Menu */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0, marginLeft: '4px' }}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -169,9 +178,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       if (onCloseMobileMenu) onCloseMobileMenu();
                       logout();
                     }}
-                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                     title="Log Out"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#DC2626', display: 'flex', alignItems: 'center', borderRadius: '6px' }}
                   >
                     <LogOut size={15} />
                   </button>
@@ -179,8 +187,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowProfileMenu(prev => !prev)}
-                    className="p-1 text-gray-400 hover:text-gray-600"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title="Menu"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#9CA3AF', display: 'flex', alignItems: 'center' }}
                   >
                     <ChevronUp size={14} />
                   </button>
