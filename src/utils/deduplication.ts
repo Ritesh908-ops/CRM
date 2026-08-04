@@ -19,17 +19,22 @@ export async function analyzeDuplicates(
 
   const now = new Date().toISOString();
 
+  // Keys accepted from this same file, so repeated rows inside one upload are
+  // caught too — not just collisions against what is already stored.
+  const seenInThisFile = new Set<string>();
+
   incomingItems.forEach(item => {
     const existing = existingMap.get(item.compositeKey);
 
-    if (existing) {
+    if (existing || seenInThisFile.has(item.compositeKey)) {
       duplicateItems.push({
         incomingRecord: item,
         existingRecord: existing,
         isDuplicate: true,
-        statusConflict: existing.status !== 'New'
+        statusConflict: Boolean(existing && existing.status !== 'New')
       });
     } else {
+      seenInThisFile.add(item.compositeKey);
       const fullLead: CRMLead = {
         ...item,
         status: item.status || 'New',
@@ -77,8 +82,12 @@ export async function commitImportBatch(
   }
 
   // 2. Handle duplicate items according to strategy
-  for (const dup of analysis.duplicateItems) {
+  for (const [dupIndex, dup] of analysis.duplicateItems.entries()) {
     if (strategy === 'skip') {
+      skippedCount++;
+    } else if (strategy === 'update' && !dup.existingRecord) {
+      // A repeat of a row from this same file — there is no stored record to
+      // update, so the later copy is dropped.
       skippedCount++;
     } else if (strategy === 'update' && dup.existingRecord && dup.existingRecord.id) {
       const updatedLead: Partial<CRMLead> = {
@@ -98,7 +107,8 @@ export async function commitImportBatch(
       await db.leads.update(dup.existingRecord.id, updatedLead);
       updatedCount++;
     } else if (strategy === 'keep_all') {
-      const newVariantKey = `${dup.incomingRecord.compositeKey}_DUP_${Date.now()}`;
+      // Index keeps the key unique even when several variants land in the same millisecond.
+      const newVariantKey = `${dup.incomingRecord.compositeKey}_DUP_${Date.now()}_${dupIndex}`;
       const duplicateVariant: CRMLead = {
         ...dup.incomingRecord,
         status: dup.existingRecord?.status || 'New',

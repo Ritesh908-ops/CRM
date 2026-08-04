@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { db } from './database';
+import { db, buildInitialBatch } from './database';
 import type { CRMLead, MonthlyBatch, LeadStatus, DuplicateStrategy } from '../types/crm';
 import { INITIAL_SAMPLE_LEADS } from '../mockData/sampleData';
 
@@ -170,18 +170,11 @@ export const crmService = {
    * Reset database to initial sample data
    */
   async resetToSampleData(): Promise<void> {
-    await db.leads.clear();
-    await db.batches.clear();
-    await db.leads.bulkAdd(INITIAL_SAMPLE_LEADS);
-    await db.batches.add({
-      id: 'Batch - July 2026 Initial',
-      batchName: 'July 2026 Initial Batch',
-      uploadDate: new Date().toISOString(),
-      totalRowsInFile: INITIAL_SAMPLE_LEADS.length,
-      newRecordsCount: INITIAL_SAMPLE_LEADS.length,
-      duplicateRecordsCount: 0,
-      duplicateStrategyUsed: 'skip',
-      fileName: 'sample_july_2026.csv'
+    await db.transaction('rw', db.leads, db.batches, async () => {
+      await db.leads.clear();
+      await db.batches.clear();
+      await db.leads.bulkAdd(INITIAL_SAMPLE_LEADS);
+      await db.batches.put(buildInitialBatch());
     });
   }
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Papa from 'papaparse';
+import { RefreshCw } from 'lucide-react';
 import { initializeDatabase } from './db/database';
 import { crmService } from './db/crmService';
 import type { CRMLead, LeadStatus } from './types/crm';
@@ -21,9 +22,12 @@ function MainCRMApp() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'datagrid' | 'batches'>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBatch, setSelectedBatch] = useState<string>('');
-  
+
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
-  const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
+  // Only the id is held in state; the record itself is read from the live query
+  // below so the drawer reflects edits (new notes, status) as they are saved.
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Initialize Dexie DB
   useEffect(() => {
@@ -31,8 +35,14 @@ function MainCRMApp() {
   }, []);
 
   // Live Query from Dexie IndexedDB
-  const leads = useLiveQuery(() => crmService.getLeads(), []) || [];
+  const leads = useLiveQuery(() => crmService.getLeads(), []);
   const batches = useLiveQuery(() => crmService.getBatches(), []) || [];
+
+  const isLoading = leads === undefined;
+  const leadList = leads || [];
+  const selectedLead = selectedLeadId === null
+    ? null
+    : leadList.find(l => l.id === selectedLeadId) ?? null;
 
   // If unauthenticated, show Admin Login Modal
   if (!isAuthenticated) {
@@ -42,9 +52,6 @@ function MainCRMApp() {
   // Status update
   const handleUpdateStatus = async (leadId: number, newStatus: LeadStatus) => {
     await crmService.updateLeadStatus(leadId, newStatus);
-    if (selectedLead && selectedLead.id === leadId) {
-      setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null);
-    }
   };
 
   // Add Note
@@ -56,7 +63,7 @@ function MainCRMApp() {
   const handleDeleteLead = async (leadId: number) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       await crmService.deleteLead(leadId);
-      setSelectedLead(null);
+      setSelectedLeadId(null);
     }
   };
 
@@ -92,17 +99,16 @@ function MainCRMApp() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Reset Sample Data
   const handleResetSampleData = async () => {
     if (window.confirm('Reset database to initial sample records?')) {
       await crmService.resetToSampleData();
-      setSelectedLead(null);
+      setSelectedLeadId(null);
     }
   };
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="app-shell">
@@ -110,8 +116,8 @@ function MainCRMApp() {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        totalLeadsCount={leads.length}
-        onExportCSV={() => handleExportCSV(leads)}
+        totalLeadsCount={leadList.length}
+        onExportCSV={() => handleExportCSV(leadList)}
         isMobileMenuOpen={isMobileMenuOpen}
         onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
       />
@@ -133,30 +139,41 @@ function MainCRMApp() {
 
         {/* View Switcher */}
         <div className="content">
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              leads={leads}
-              batches={batches}
-              onNavigateToDataGrid={() => setActiveTab('datagrid')}
-            />
-          )}
+          {isLoading ? (
+            <div className="empty">
+              <RefreshCw size={40} className="spin" />
+              <h3>Loading CRM records…</h3>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && (
+                <DashboardView
+                  leads={leadList}
+                  batches={batches}
+                  onNavigateToDataGrid={() => setActiveTab('datagrid')}
+                />
+              )}
 
-          {activeTab === 'datagrid' && (
-            <LeadsTable
-              leads={leads}
-              onSelectLead={(l) => setSelectedLead(l)}
-              onUpdateStatus={handleUpdateStatus}
-              selectedBatch={selectedBatch}
-              setSelectedBatch={setSelectedBatch}
-              onExportFilteredCSV={handleExportCSV}
-            />
-          )}
+              {activeTab === 'datagrid' && (
+                <LeadsTable
+                  leads={leadList}
+                  onSelectLead={(l) => setSelectedLeadId(l.id ?? null)}
+                  onUpdateStatus={handleUpdateStatus}
+                  selectedBatch={selectedBatch}
+                  setSelectedBatch={setSelectedBatch}
+                  onExportFilteredCSV={handleExportCSV}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                />
+              )}
 
-          {activeTab === 'batches' && (
-            <BatchHistoryView
-              batches={batches}
-              openImportModal={() => setIsImportModalOpen(true)}
-            />
+              {activeTab === 'batches' && (
+                <BatchHistoryView
+                  batches={batches}
+                  openImportModal={() => setIsImportModalOpen(true)}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -164,7 +181,7 @@ function MainCRMApp() {
       {/* Profile Detail Drawer */}
       <LeadDetailDrawer
         lead={selectedLead}
-        onClose={() => setSelectedLead(null)}
+        onClose={() => setSelectedLeadId(null)}
         onUpdateStatus={handleUpdateStatus}
         onAddNote={handleAddNote}
         onDeleteLead={handleDeleteLead}

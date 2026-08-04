@@ -13,7 +13,8 @@ import {
   Download,
   Eye,
   MapPin,
-  Building2
+  Building2,
+  Search
 } from 'lucide-react';
 
 interface LeadsTableProps {
@@ -23,6 +24,9 @@ interface LeadsTableProps {
   selectedBatch: string;
   setSelectedBatch: (batch: string) => void;
   onExportFilteredCSV: (filteredLeads: CRMLead[]) => void;
+  /** Owned by App so the navbar's global search drives this table. */
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 }
 
 export const LeadsTable: React.FC<LeadsTableProps> = ({
@@ -31,10 +35,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
   onUpdateStatus,
   selectedBatch,
   setSelectedBatch,
-  onExportFilteredCSV
+  onExportFilteredCSV,
+  searchQuery,
+  setSearchQuery
 }) => {
   // Filter States
-  const [search, setSearch] = useState('');
+  const search = searchQuery;
+  const setSearch = setSearchQuery;
   const [entityTypeFilter, setEntityTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [stateFilter, setStateFilter] = useState('');
@@ -76,7 +83,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
         if (!matchesQuery) return false;
       }
 
-      if (entityTypeFilter && lead.entityType.toLowerCase() !== entityTypeFilter.toLowerCase()) return false;
+      if (entityTypeFilter && (lead.entityType || "").toLowerCase() !== entityTypeFilter.toLowerCase()) return false;
       if (statusFilter && lead.status !== statusFilter) return false;
       if (stateFilter && lead.state !== stateFilter) return false;
       if (rocFilter && lead.roc !== rocFilter) return false;
@@ -104,10 +111,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
   // Pagination Logic
   const totalPages = Math.ceil(sortedLeads.length / pageSize) || 1;
+  // Clamped at render time so deleting or filtering down never strands the user
+  // on a page that no longer exists.
+  const safePage = Math.min(currentPage, totalPages);
   const paginatedLeads = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (safePage - 1) * pageSize;
     return sortedLeads.slice(start, start + pageSize);
-  }, [sortedLeads, currentPage, pageSize]);
+  }, [sortedLeads, safePage, pageSize]);
 
   const handleSort = (field: keyof CRMLead) => {
     if (sortField === field) {
@@ -182,6 +192,19 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
           </div>
         </div>
 
+        {/* In-table search — mirrors the navbar's global search box */}
+        <div className="sw" style={{ marginBottom: '12px' }}>
+          <Search size={15} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            placeholder="Search company, entity ID, director, phone, email, state or sector..."
+            style={{ paddingLeft: '36px' }}
+            aria-label="Search leads"
+          />
+        </div>
+
         {/* Dropdown Filters Grid (Side-by-Side 6 Columns) */}
         <div className="filter-grid">
           {/* Entity Type Filter */}
@@ -251,6 +274,48 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
           </select>
         </div>
       </div>
+
+      {/* Bulk Action Bar — only present while rows are selected */}
+      {selectedIds.length > 0 && (
+        <div className="bulk-bar">
+          <span className="bulk-count">{selectedIds.length} selected</span>
+
+          <div className="flex-center gap-2 ml-auto flex-wrap">
+            <select
+              value=""
+              onChange={(e) => {
+                const next = e.target.value as LeadStatus;
+                if (!next) return;
+                selectedIds.forEach(id => onUpdateStatus(id, next));
+                e.target.value = '';
+              }}
+              className="filter-sel"
+              aria-label="Set pipeline stage for selected leads"
+            >
+              <option value="">Set stage for selected…</option>
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="In Discussion">In Discussion</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Converted">Converted</option>
+              <option value="Unresponsive">Unresponsive</option>
+            </select>
+
+            <button
+              onClick={() => onExportFilteredCSV(leads.filter(l => l.id && selectedIds.includes(l.id)))}
+              className="btn btn-ghost btn-sm"
+            >
+              <Download size={14} />
+              <span>Export Selected</span>
+            </button>
+
+            <button onClick={() => setSelectedIds([])} className="btn btn-ghost btn-sm">
+              <XCircle size={14} />
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Data Table Panel */}
       <div className="card" style={{ padding: 0 }}>
@@ -328,8 +393,8 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                           <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#4F46E5' }}>
                             {lead.entityId}
                           </span>
-                          <span className={`badge ${lead.entityType.toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
-                            {lead.entityType.toUpperCase()}
+                          <span className={`badge ${(lead.entityType || "").toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
+                            {(lead.entityType || "company").toUpperCase()}
                           </span>
                         </div>
                       </td>
@@ -448,7 +513,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#4B5563', flexWrap: 'wrap' }}>
             <span>
-              Showing {paginatedLeads.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, sortedLeads.length)} of {sortedLeads.length} entries
+              Showing {paginatedLeads.length > 0 ? (safePage - 1) * pageSize + 1 : 0} to {Math.min(safePage * pageSize, sortedLeads.length)} of {sortedLeads.length} entries
             </span>
             <span style={{ color: '#D1D5DB' }}>•</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -467,17 +532,17 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, marginLeft: 'auto' }}>
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
+              disabled={safePage === 1}
               className="btn btn-ghost btn-sm disabled:opacity-40"
               style={{ padding: '5px 10px', height: '30px' }}
             >
               <ChevronLeft size={16} />
             </button>
-            <span style={{ color: '#111827', padding: '0 4px' }}>Page {currentPage} of {totalPages}</span>
+            <span style={{ color: '#111827', padding: '0 4px' }}>Page {safePage} of {totalPages}</span>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
+              disabled={safePage >= totalPages}
               className="btn btn-ghost btn-sm disabled:opacity-40"
               style={{ padding: '5px 10px', height: '30px' }}
             >

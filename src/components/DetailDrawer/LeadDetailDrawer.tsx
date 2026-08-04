@@ -56,8 +56,8 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
         {/* Drawer Header */}
         <div className="drawer-header">
           <div className="flex items-center gap-2.5">
-            <span className={`badge ${lead.entityType.toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
-              {lead.entityType.toUpperCase()}
+            <span className={`badge ${(lead.entityType || "").toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
+              {(lead.entityType || "company").toUpperCase()}
             </span>
             <span className="text-xs font-mono font-bold text-gray-500">{lead.entityId}</span>
           </div>
