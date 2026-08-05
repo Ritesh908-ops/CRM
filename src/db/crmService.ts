@@ -16,19 +16,36 @@ export const crmService = {
     await db.leads.limit(1).toArray();
 
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(15000); // Bypass Supabase's default 1,000 row limit
+      let allData: any[] = [];
+      let from = 0;
+      const step = 1000;
+      let fetchMore = true;
 
-      if (error) {
-        console.error('Supabase fetch error, falling back to IndexedDB:', error);
-        return db.leads.toArray();
-      }
+      while (fetchMore) {
+        const { data, error } = await supabase
+            .from('leads')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .range(from, from + step - 1);
 
-      // Map snake_case DB columns to CRMLead properties
-      return data.map(row => ({
+          if (error) {
+            console.error('Supabase fetch error, falling back to IndexedDB:', error);
+            return db.leads.toArray();
+          }
+
+          if (data && data.length > 0) {
+            allData = allData.concat(data);
+          }
+
+          if (!data || data.length < step) {
+            fetchMore = false;
+          } else {
+            from += step;
+          }
+        }
+
+        // Map snake_case DB columns to CRMLead properties
+        return allData.map(row => ({
         id: row.id,
         compositeKey: row.composite_key,
         entityId: row.entity_id,
