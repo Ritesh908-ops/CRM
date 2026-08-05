@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside className={`sb ${isMobileMenuOpen ? 'open' : ''}`}>
         {/* Brand Header */}
-        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '20px 16px 12px 16px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
+        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '20px 16px 16px 16px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <img src="/logo.png" alt="Khataview CRM" style={{ width: '100%', display: 'block' }} />
           </div>
