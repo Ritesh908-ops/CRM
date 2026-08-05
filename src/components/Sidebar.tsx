@@ -64,9 +64,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside className={`sb ${isMobileMenuOpen ? 'open' : ''}`}>
         {/* Brand Header */}
-        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '72px', padding: '8px 16px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-            <img src="/logo.png" alt="Khataview CRM" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'left center' }} />
+        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '64px', padding: '10px 12px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+            <img src="/logo.svg" alt="Khataview CRM" style={{ width: '100%', maxHeight: '44px', objectFit: 'contain', objectPosition: 'left center' }} />
           </div>
 
           {/* Close button ONLY rendered on mobile when drawer is open */}
