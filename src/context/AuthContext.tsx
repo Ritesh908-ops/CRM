@@ -13,19 +13,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Built-in account for running the CRM without a Supabase project. It is a
+ * local-only convenience — configure Supabase for any real deployment.
+ */
+export const DEMO_EMAIL = 'admin@khatabook.com';
+export const DEMO_PASSWORD = 'admin123';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<CRMUser | null>(() => {
     const saved = localStorage.getItem('crm_auth_session');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { return null; }
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved) as CRMUser;
+      // Ignore anything that is not a session shape we recognise.
+      return parsed && typeof parsed.email === 'string' && typeof parsed.id === 'string'
+        ? parsed
+        : null;
+    } catch {
+      localStorage.removeItem('crm_auth_session');
+      return null;
     }
-    // Default logged in local admin session
-    return {
-      id: 'admin-local',
-      email: 'admin@khatabook.com',
-      name: 'Khatabook Admin',
-      role: 'Admin'
-    };
   });
 
   // Check Supabase auth session if configured
@@ -61,74 +69,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email?: string, password?: string): Promise<{ success: boolean; error?: string }> => {
-    const inputEmail = email?.trim().toLowerCase() || 'admin@khatabook.com';
-    const inputPassword = password?.trim() || 'admin123';
+  const signIn = (authUser: CRMUser) => {
+    setUser(authUser);
+    localStorage.setItem('crm_auth_session', JSON.stringify(authUser));
+  };
 
-    // 1. Local Demo Admin Credentials (Always Works Seamlessly)
-    if (inputEmail === 'admin@khatabook.com' || inputEmail === 'admin@corppulse.com' || inputPassword === 'admin123') {
-      const demoAdmin: CRMUser = {
-        id: `admin-local`,
-        email: inputEmail,
-        name: 'Khatabook Admin',
-        role: 'Admin'
-      };
-      setUser(demoAdmin);
-      localStorage.setItem('crm_auth_session', JSON.stringify(demoAdmin));
-      return { success: true };
+  const login = async (email?: string, password?: string): Promise<{ success: boolean; error?: string }> => {
+    const inputEmail = email?.trim().toLowerCase() || '';
+    const inputPassword = password ?? '';
+
+    if (!inputEmail || !inputPassword) {
+      return { success: false, error: 'Enter both an email address and a password.' };
     }
 
-    // 2. If Supabase is configured and custom credentials provided, try Supabase auth
-    if (isSupabaseConfigured && supabase && email && password) {
+    // Supabase is the source of truth whenever it is configured.
+    if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          // Fallback to local admin login so user is never blocked
-          const demoAdmin: CRMUser = {
-            id: `admin-${Date.now()}`,
-            email: inputEmail,
-            name: inputEmail.split('@')[0].toUpperCase() + ' (Admin)',
-            role: 'Admin'
-          };
-          setUser(demoAdmin);
-          localStorage.setItem('crm_auth_session', JSON.stringify(demoAdmin));
-          return { success: true };
-        }
-        if (data.user) {
-          const authUser: CRMUser = {
-            id: data.user.id,
-            email: data.user.email || email,
-            name: 'Supabase Admin',
-            role: 'Admin'
-          };
-          setUser(authUser);
-          localStorage.setItem('crm_auth_session', JSON.stringify(authUser));
-          return { success: true };
-        }
-      } catch (err: any) {
-        // Fallback on error
-        const demoAdmin: CRMUser = {
-          id: `admin-${Date.now()}`,
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: inputEmail,
-          name: inputEmail.split('@')[0].toUpperCase() + ' (Admin)',
+          password: inputPassword
+        });
+
+        if (error) {
+          return { success: false, error: error.message || 'Invalid email or password.' };
+        }
+        if (!data.user) {
+          return { success: false, error: 'Sign-in did not return a user. Please try again.' };
+        }
+
+        signIn({
+          id: data.user.id,
+          email: data.user.email || inputEmail,
+          name: data.user.user_metadata?.name || 'Supabase Admin',
           role: 'Admin'
-        };
-        setUser(demoAdmin);
-        localStorage.setItem('crm_auth_session', JSON.stringify(demoAdmin));
+        });
         return { success: true };
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : 'Could not reach the authentication service.'
+        };
       }
     }
 
-    // Default Fallback
-    const demoAdmin: CRMUser = {
-      id: `admin-${Date.now()}`,
-      email: inputEmail,
-      name: inputEmail.split('@')[0].toUpperCase() + ' (Admin)',
-      role: 'Admin'
+    // Local mode: the built-in demo account is the only credential that works.
+    if (inputEmail === DEMO_EMAIL && inputPassword === DEMO_PASSWORD) {
+      signIn({
+        id: 'admin-local',
+        email: DEMO_EMAIL,
+        name: 'Khataview Admin',
+        role: 'Admin'
+      });
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: 'Invalid credentials. Supabase is not configured, so only the local demo admin account can sign in.'
     };
-    setUser(demoAdmin);
-    localStorage.setItem('crm_auth_session', JSON.stringify(demoAdmin));
-    return { success: true };
   };
 
   const logout = async () => {

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { Building2, ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { useAuth, DEMO_EMAIL, DEMO_PASSWORD } from '../../context/AuthContext';
+import { ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
 
 export const LoginModal: React.FC = () => {
   const { login, isSupabaseActive } = useAuth();
-  const [email, setEmail] = useState('admin@khatabook.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState(isSupabaseActive ? '' : DEMO_EMAIL);
+  const [password, setPassword] = useState(isSupabaseActive ? '' : DEMO_PASSWORD);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -24,8 +24,12 @@ export const LoginModal: React.FC = () => {
 
   const handleQuickDemoLogin = async () => {
     setIsSubmitting(true);
-    await login('admin@khatabook.com', 'admin123');
+    setErrorMsg('');
+    const res = await login(DEMO_EMAIL, DEMO_PASSWORD);
     setIsSubmitting(false);
+    if (!res.success) {
+      setErrorMsg(res.error || 'Demo login is unavailable while Supabase auth is active.');
+    }
   };
 
   return (
@@ -33,11 +37,11 @@ export const LoginModal: React.FC = () => {
       <div className="login-box">
         {/* Brand Header */}
         <div className="login-logo">
-          <div className="logo-ic">
-            <Building2 size={22} />
+          <div className="logo-ic" style={{ background: 'transparent', boxShadow: 'none' }}>
+            <img src="/logo.svg" alt="Khataview" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '10px' }} />
           </div>
           <div className="logo-txt">
-            <h2>Khatabook CRM</h2>
+            <h2>Khataview CRM</h2>
             <p className="flex-center gap-1">
               <ShieldCheck size={14} className="accent" />
               <span>Admin Portal Access</span>
@@ -98,21 +102,24 @@ export const LoginModal: React.FC = () => {
           </button>
         </form>
 
-        {/* Quick Demo Access Divider */}
-        <div className="login-divider">
-          <span>Instant Local Testing</span>
-        </div>
+        {/* Quick demo access — only meaningful while Supabase auth is inactive */}
+        {!isSupabaseActive && (
+          <>
+            <div className="login-divider">
+              <span>Instant Local Testing</span>
+            </div>
 
-        {/* Quick Demo Admin Login CTA */}
-        <button
-          onClick={handleQuickDemoLogin}
-          type="button"
-          disabled={isSubmitting}
-          className="btn btn-ghost login-btn mt-2"
-        >
-          <Sparkles size={16} className="teal" />
-          <span>Quick Demo Admin Login</span>
-        </button>
+            <button
+              onClick={handleQuickDemoLogin}
+              type="button"
+              disabled={isSubmitting}
+              className="btn btn-ghost login-btn mt-2"
+            >
+              <Sparkles size={16} className="teal" />
+              <span>Quick Demo Admin Login</span>
+            </button>
+          </>
+        )}
 
         {/* Auth Mode Status Footer */}
         <div className="login-footer mt-4">

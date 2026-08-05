@@ -13,7 +13,8 @@ import {
   Download,
   Eye,
   MapPin,
-  Building2
+  Building2,
+  Search
 } from 'lucide-react';
 
 interface LeadsTableProps {
@@ -23,6 +24,9 @@ interface LeadsTableProps {
   selectedBatch: string;
   setSelectedBatch: (batch: string) => void;
   onExportFilteredCSV: (filteredLeads: CRMLead[]) => void;
+  /** Owned by App so the navbar's global search drives this table. */
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
 }
 
 export const LeadsTable: React.FC<LeadsTableProps> = ({
@@ -31,10 +35,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
   onUpdateStatus,
   selectedBatch,
   setSelectedBatch,
-  onExportFilteredCSV
+  onExportFilteredCSV,
+  searchQuery,
+  setSearchQuery
 }) => {
   // Filter States
-  const [search, setSearch] = useState('');
+  const search = searchQuery;
+  const setSearch = setSearchQuery;
   const [entityTypeFilter, setEntityTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [stateFilter, setStateFilter] = useState('');
@@ -76,7 +83,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
         if (!matchesQuery) return false;
       }
 
-      if (entityTypeFilter && lead.entityType.toLowerCase() !== entityTypeFilter.toLowerCase()) return false;
+      if (entityTypeFilter && (lead.entityType || "").toLowerCase() !== entityTypeFilter.toLowerCase()) return false;
       if (statusFilter && lead.status !== statusFilter) return false;
       if (stateFilter && lead.state !== stateFilter) return false;
       if (rocFilter && lead.roc !== rocFilter) return false;
@@ -104,10 +111,13 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
   // Pagination Logic
   const totalPages = Math.ceil(sortedLeads.length / pageSize) || 1;
+  // Clamped at render time so deleting or filtering down never strands the user
+  // on a page that no longer exists.
+  const safePage = Math.min(currentPage, totalPages);
   const paginatedLeads = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (safePage - 1) * pageSize;
     return sortedLeads.slice(start, start + pageSize);
-  }, [sortedLeads, currentPage, pageSize]);
+  }, [sortedLeads, safePage, pageSize]);
 
   const handleSort = (field: keyof CRMLead) => {
     if (sortField === field) {
@@ -151,7 +161,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Filter Bar Header */}
       <div className="fsec">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', marginBottom: '14px', borderBottom: '1px solid #E5E7EB' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', marginBottom: '14px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <SlidersHorizontal size={16} className="text-indigo-600" />
             <span className="font-bold text-sm text-gray-900">Multi-Field Filter & Search</span>
@@ -180,6 +190,19 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
               <span>Export Filtered ({filteredLeads.length})</span>
             </button>
           </div>
+        </div>
+
+        {/* In-table search — mirrors the navbar's global search box */}
+        <div className="sw" style={{ marginBottom: '12px' }}>
+          <Search size={15} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            placeholder="Search company, entity ID, director, phone, email, state or sector..."
+            style={{ paddingLeft: '36px' }}
+            aria-label="Search leads"
+          />
         </div>
 
         {/* Dropdown Filters Grid (Side-by-Side 6 Columns) */}
@@ -251,6 +274,48 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
           </select>
         </div>
       </div>
+
+      {/* Bulk Action Bar — only present while rows are selected */}
+      {selectedIds.length > 0 && (
+        <div className="bulk-bar">
+          <span className="bulk-count">{selectedIds.length} selected</span>
+
+          <div className="flex-center gap-2 ml-auto flex-wrap">
+            <select
+              value=""
+              onChange={(e) => {
+                const next = e.target.value as LeadStatus;
+                if (!next) return;
+                selectedIds.forEach(id => onUpdateStatus(id, next));
+                e.target.value = '';
+              }}
+              className="filter-sel"
+              aria-label="Set pipeline stage for selected leads"
+            >
+              <option value="">Set stage for selected…</option>
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="In Discussion">In Discussion</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Converted">Converted</option>
+              <option value="Unresponsive">Unresponsive</option>
+            </select>
+
+            <button
+              onClick={() => onExportFilteredCSV(leads.filter(l => l.id && selectedIds.includes(l.id)))}
+              className="btn btn-ghost btn-sm"
+            >
+              <Download size={14} />
+              <span>Export Selected</span>
+            </button>
+
+            <button onClick={() => setSelectedIds([])} className="btn btn-ghost btn-sm">
+              <XCircle size={14} />
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Data Table Panel */}
       <div className="card" style={{ padding: 0 }}>
@@ -325,11 +390,11 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                       {/* Entity ID & Type */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'top' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                          <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#4F46E5' }}>
+                          <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#007AFF' }}>
                             {lead.entityId}
                           </span>
-                          <span className={`badge ${lead.entityType.toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
-                            {lead.entityType.toUpperCase()}
+                          <span className={`badge ${(lead.entityType || "").toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
+                            {(lead.entityType || "company").toUpperCase()}
                           </span>
                         </div>
                       </td>
@@ -339,12 +404,12 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
                           <button
                             onClick={() => onSelectLead(lead)}
-                            style={{ display: 'block', width: '100%', fontWeight: 700, fontSize: '13px', color: '#1C1C1E', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: '1.3' }}
+                            style={{ display: 'block', width: '100%', fontWeight: 700, fontSize: '13px', color: '#000000', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer', lineHeight: '1.3' }}
                             className="hover:text-indigo-600"
                           >
                             {lead.name}
                           </button>
-                          <span style={{ display: 'block', width: '100%', fontSize: '11px', fontWeight: 500, color: '#6E6E73', lineHeight: '1.2' }}>
+                          <span style={{ display: 'block', width: '100%', fontSize: '11px', fontWeight: 500, color: 'rgba(60,60,67,0.6)', lineHeight: '1.2' }}>
                             {lead.nicLabel || 'Unclassified Sector'}
                           </span>
                         </div>
@@ -353,12 +418,12 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                       {/* Location & ROC */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'top' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600, color: '#1C1C1E' }}>
-                            <MapPin size={12} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600, color: '#000000' }}>
+                            <MapPin size={12} style={{ color: 'rgba(60,60,67,0.3)', flexShrink: 0 }} />
                             <span>{lead.district}, {lead.state}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6E6E73' }}>
-                            <Building2 size={11} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'rgba(60,60,67,0.6)' }}>
+                            <Building2 size={11} style={{ color: 'rgba(60,60,67,0.3)', flexShrink: 0 }} />
                             <span>{lead.roc}</span>
                           </div>
                         </div>
@@ -367,8 +432,8 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                       {/* Director & Contact Info */}
                       <td style={{ padding: '14px 16px', verticalAlign: 'top' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#1C1C1E' }}>
-                            <User size={13} style={{ color: '#4F46E5', flexShrink: 0 }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#000000' }}>
+                            <User size={13} style={{ color: '#007AFF', flexShrink: 0 }} />
                             <span>{lead.directorName}</span>
                           </div>
 
@@ -376,7 +441,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             {lead.directorMobile && (
                               <a 
                                 href={`tel:${lead.directorMobile}`} 
-                                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#0F766E', textDecoration: 'none' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#32ADE6', textDecoration: 'none' }}
                                 className="hover:underline"
                               >
                                 <Phone size={11} style={{ flexShrink: 0 }} />
@@ -386,7 +451,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                             {lead.directorEmail && (
                               <a 
                                 href={`mailto:${lead.directorEmail}`} 
-                                style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6E6E73', textDecoration: 'none', maxWidth: '170px' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'rgba(60,60,67,0.6)', textDecoration: 'none', maxWidth: '170px' }}
                                 className="hover:text-indigo-600"
                               >
                                 <Mail size={11} style={{ flexShrink: 0 }} />
@@ -399,7 +464,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
                       {/* Paid-Up Financials */}
                       <td className="tr" style={{ padding: '14px 16px', verticalAlign: 'top' }}>
-                        <span style={{ fontWeight: 700, fontSize: '12.5px', color: '#15803D' }}>
+                        <span style={{ fontWeight: 700, fontSize: '12.5px', color: '#34C759' }}>
                           {formatCurrency(lead.paidUpCapital)}
                         </span>
                       </td>
@@ -445,18 +510,18 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
         </div>
 
         {/* Footer Pagination Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#F9FAFB', borderTop: '1px solid #E5E7EB', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#4B5563', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(242,242,247,0.8)', borderTop: '0.5px solid rgba(60,60,67,0.12)', borderBottomLeftRadius: '13px', borderBottomRightRadius: '13px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: 'rgba(60,60,67,0.6)', flexWrap: 'wrap' }}>
             <span>
-              Showing {paginatedLeads.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, sortedLeads.length)} of {sortedLeads.length} entries
+              Showing {paginatedLeads.length > 0 ? (safePage - 1) * pageSize + 1 : 0} to {Math.min(safePage * pageSize, sortedLeads.length)} of {sortedLeads.length} entries
             </span>
-            <span style={{ color: '#D1D5DB' }}>•</span>
+            <span style={{ color: 'rgba(60,60,67,0.18)' }}>•</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                style={{ height: '30px', padding: '0 8px', fontSize: '11.5px', fontWeight: 600, color: '#374151', background: '#FFFFFF', border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer', outline: 'none', width: '64px', display: 'inline-block' }}
+                style={{ height: '30px', padding: '0 8px', fontSize: '11.5px', fontWeight: 600, color: 'var(--sub)', background: '#FFFFFF', border: '0.5px solid rgba(60,60,67,0.12)', borderRadius: '10px', cursor: 'pointer', outline: 'none', width: '64px', display: 'inline-block' }}
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -467,17 +532,17 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, marginLeft: 'auto' }}>
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
+              disabled={safePage === 1}
               className="btn btn-ghost btn-sm disabled:opacity-40"
               style={{ padding: '5px 10px', height: '30px' }}
             >
               <ChevronLeft size={16} />
             </button>
-            <span style={{ color: '#111827', padding: '0 4px' }}>Page {currentPage} of {totalPages}</span>
+            <span style={{ color: '#000000', padding: '0 4px' }}>Page {safePage} of {totalPages}</span>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
+              disabled={safePage >= totalPages}
               className="btn btn-ghost btn-sm disabled:opacity-40"
               style={{ padding: '5px 10px', height: '30px' }}
             >

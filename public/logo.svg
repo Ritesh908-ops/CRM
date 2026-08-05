@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <style>
+      .blue { fill: #2b4b8b; }
+      .green { fill: #75c043; }
+      .white { fill: #ffffff; }
+      .math { font-family: sans-serif; font-weight: bold; font-size: 28px; }
+    </style>
+  </defs>
+
+  <!-- Left vertical stem of K -->
+  <rect x="120" y="180" width="45" height="150" class="blue" />
+
+  <!-- Bottom swoosh and arrow -->
+  <path d="M 120 330 
+           C 160 330 200 300 240 260 
+           L 290 320 
+           L 440 130 
+           L 480 160 
+           L 450 80 
+           L 370 110 
+           L 410 140 
+           L 290 280 
+           L 240 220 
+           C 200 260 160 280 120 280 Z" 
+        class="blue" />
+
+  <!-- Top diagonal of K -->
+  <path d="M 165 240 L 260 130 L 300 130 L 210 240 Z" class="blue" />
+
+  <!-- Green Calculator Box -->
+  <rect x="260" y="180" width="90" height="90" rx="16" class="green" />
+
+  <!-- Center Circle for Equals -->
+  <circle cx="305" cy="225" r="18" class="white" />
+  <rect x="295" y="221" width="20" height="3" class="green" />
+  <rect x="295" y="227" width="20" height="3" class="green" />
+
+  <!-- Plus -->
+  <path d="M 276 195 h 8 v -8 h 4 v 8 h 8 v 4 h -8 v 8 h -4 v -8 h -8 z" class="white" />
+
+  <!-- Minus -->
+  <rect x="318" y="235" width="16" height="4" class="white" />
+
+  <!-- Multiply -->
+  <path d="M 275 235 l 3 -3 l 5 5 l 5 -5 l 3 3 l -5 5 l 5 5 l -3 3 l -5 -5 l -5 5 l -3 -3 l 5 -5 z" class="white" />
+
+  <!-- Divide -->
+  <circle cx="326" cy="195" r="3" class="white" />
+  <rect x="318" y="201" width="16" height="4" class="white" />
+  <circle cx="326" cy="211" r="3" class="white" />
+</svg>

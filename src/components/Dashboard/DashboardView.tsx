@@ -26,12 +26,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   // Metrics calculation
   const totalLeads = leads.length;
-  const companiesCount = leads.filter(l => l.entityType.toLowerCase() === 'company').length;
-  const llpCount = leads.filter(l => l.entityType.toLowerCase() === 'llp').length;
-  
+  const companiesCount = leads.filter(l => (l.entityType || '').toLowerCase() === 'company').length;
+  const llpCount = leads.filter(l => (l.entityType || '').toLowerCase() === 'llp').length;
+
   const totalDirectors = leads.filter(l => l.directorName && l.directorName !== 'N/A').length;
+  const reachableDirectors = leads.filter(l => l.directorMobile || l.directorEmail).length;
   const totalPaidUp = leads.reduce((sum, l) => sum + (l.paidUpCapital || 0), 0);
   const totalAuthorized = leads.reduce((sum, l) => sum + (l.authorizedCapital || 0), 0);
+
+  // Newest by upload date — the two data sources return batches in different orders.
+  const latestBatch = batches.length > 0
+    ? [...batches].sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0]
+    : null;
 
   // States breakdown
   const stateCounts: Record<string, number> = {};
@@ -101,9 +107,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="stat-n ct">{totalDirectors}</div>
           <div className="stat-l">Director Contacts</div>
-          <div className="text-xs teal flex-center gap-1 justify-center mt-2 fwb">
+          <div className="text-xs teal flex-center gap-1 mt-2 fwb">
             <CheckCircle2 size={12} />
-            <span>With Phone &amp; Email Info</span>
+            <span>{reachableDirectors} with phone or email</span>
           </div>
         </div>
 
@@ -129,7 +135,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="stat-n co">{batches.length}</div>
           <div className="stat-l">Monthly Batches</div>
           <div className="text-xs muted mt-2">
-            Latest: <span className="co fw6">{batches[batches.length - 1]?.batchName || 'July 2026 Batch'}</span>
+            Latest: <span className="co fw6">{latestBatch?.batchName || 'No batches yet'}</span>
           </div>
         </div>
       </div>

@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onToggleMobileMenu}
             className="mobile-only-btn btn btn-ghost"
             title="Toggle Menu"
-            style={{ width: '38px', height: '38px', borderRadius: '10px', padding: 0 }}
+            style={{ width: '38px', height: '38px', borderRadius: '10px', padding: 0, background: 'rgba(120,120,128,0.12)', border: 'none' }}
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={handleDownloadSampleCSV}
           title="Download Sample TSV"
           className="btn btn-ghost"
-          style={{ width: '36px', height: '36px', borderRadius: '50%', padding: 0 }}
+          style={{ width: '36px', height: '36px', borderRadius: '980px', padding: 0, background: 'rgba(120,120,128,0.12)', border: 'none' }}
         >
           <FileText size={16} />
         </button>
@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={onResetSampleData}
           title="Reset Sample Data"
           className="btn btn-ghost"
-          style={{ width: '36px', height: '36px', borderRadius: '50%', padding: 0 }}
+          style={{ width: '36px', height: '36px', borderRadius: '980px', padding: 0, background: 'rgba(120,120,128,0.12)', border: 'none' }}
         >
           <RefreshCw size={16} />
         </button>
@@ -84,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={openImportModal}
           title="Upload Monthly CSV"
           className="btn btn-primary"
-          style={{ width: '36px', height: '36px', borderRadius: '50%', padding: 0 }}
+          style={{ width: '36px', height: '36px', borderRadius: '980px', padding: 0, border: 'none' }}
         >
           <Upload size={16} />
         </button>

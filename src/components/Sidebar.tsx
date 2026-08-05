@@ -3,19 +3,19 @@ import {
   BarChart3, 
   Table, 
   History, 
-  Building2, 
   Download,
   Sparkles,
   ShieldCheck,
   LogOut,
   ChevronUp,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'datagrid' | 'batches';
-  setActiveTab: (tab: 'dashboard' | 'datagrid' | 'batches') => void;
+  activeTab: 'dashboard' | 'datagrid' | 'batches' | 'invoice';
+  setActiveTab: (tab: 'dashboard' | 'datagrid' | 'batches' | 'invoice') => void;
   totalLeadsCount: number;
   onExportCSV: () => void;
   isMobileMenuOpen?: boolean;
@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleTabSelect = (tab: 'dashboard' | 'datagrid' | 'batches') => {
+  const handleTabSelect = (tab: 'dashboard' | 'datagrid' | 'batches' | 'invoice') => {
     setActiveTab(tab);
     if (onCloseMobileMenu) onCloseMobileMenu();
   };
@@ -62,15 +62,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside className={`sb ${isMobileMenuOpen ? 'open' : ''}`}>
         {/* Brand Header */}
-        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '64px', padding: '0 16px', borderBottom: '1px solid var(--border)' }}>
+        <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '64px', padding: '0 16px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="sb-logo">
-              <Building2 size={20} />
+            <div className="sb-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
+              <img src="/logo.svg" alt="Khataview" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '10px' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
-              <span className="sb-name" style={{ fontSize: '14.5px', fontWeight: 800, color: '#1C1C1E', whiteSpace: 'nowrap' }}>Khatabook CRM</span>
-              <span className="sb-sub" style={{ fontSize: '10.5px', color: '#6E6E73', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', whiteSpace: 'nowrap' }}>
-                <Sparkles size={11} className="text-indigo-600" />
+              <span className="sb-name" style={{ fontSize: '14.5px', fontWeight: 700, color: '#000', whiteSpace: 'nowrap' }}>Khataview CRM</span>
+              <span className="sb-sub" style={{ fontSize: '10.5px', color: 'rgba(60,60,67,0.6)', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                <Sparkles size={11} style={{ color: '#007AFF' }} />
                 <span>Monthly Data Hub</span>
               </span>
             </div>
@@ -117,6 +117,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <History size={18} />
               <span className="ni-txt">Monthly Upload Logs</span>
             </button>
+
+            <button
+              onClick={() => handleTabSelect('invoice')}
+              className={`ni ${activeTab === 'invoice' ? 'active' : ''}`}
+            >
+              <FileText size={18} />
+              <span className="ni-txt">Invoice Generator</span>
+            </button>
           </nav>
         </div>
 
@@ -146,9 +154,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   width: '100%', 
                   padding: '8px 10px', 
                   background: '#FFFFFF', 
-                  border: '1px solid rgba(60,60,67,0.14)', 
-                  borderRadius: '12px', 
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)' 
+                  border: '0.5px solid rgba(60,60,67,0.12)', 
+                  borderRadius: '13px', 
+                  boxShadow: 'var(--shadow-1)' 
                 }}
               >
                 {/* Left: Avatar + Text */}
@@ -156,14 +164,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setShowProfileMenu(prev => !prev)}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, cursor: 'pointer' }}
                 >
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #4F46E5, #6366F1)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, flexShrink: 0 }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '980px', background: 'linear-gradient(135deg, #007AFF, #5856D6)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
                     {user.email ? user.email[0].toUpperCase() : 'A'}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#1C1C1E', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user.name || 'Khatabook Admin'}
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user.name || 'Khataview Admin'}
                     </span>
-                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#4F46E5', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap', marginTop: '1px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: '#007AFF', display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap', marginTop: '1px' }}>
                       <ShieldCheck size={10} style={{ flexShrink: 0 }} /> {user.role}
                     </span>
                   </div>
@@ -179,7 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       logout();
                     }}
                     title="Log Out"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#DC2626', display: 'flex', alignItems: 'center', borderRadius: '6px' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#FF3B30', display: 'flex', alignItems: 'center', borderRadius: '6px' }}
                   >
                     <LogOut size={15} />
                   </button>
@@ -198,13 +206,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Profile Menu Popup (Opens upwards) */}
               {showProfileMenu && (
                 <div 
-                  className="absolute left-0 bottom-full mb-2 w-full bg-white rounded-2xl p-3 shadow-xl border border-gray-200 z-50 flex flex-col gap-2"
-                  style={{ animation: 'sheetIn 0.15s ease-out' }}
+                  className="absolute left-0 bottom-full mb-2 w-full bg-white rounded-[13px] p-3 z-50 flex flex-col gap-2"
+                  style={{ animation: 'sheetIn 0.15s ease-out', border: '0.5px solid rgba(60,60,67,0.12)', boxShadow: 'var(--shadow-2)' }}
                 >
-                  <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex flex-col gap-1">
-                    <div className="font-bold text-xs text-gray-900">{user.name || 'Khatabook Admin'}</div>
+                  <div className="p-2.5 rounded-xl flex flex-col gap-1" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
+                    <div className="font-bold text-xs text-gray-900">{user.name || 'Khataview Admin'}</div>
                     <div className="text-xs text-gray-500 truncate">{user.email}</div>
-                    <div className="text-[10px] font-bold text-indigo-600 flex items-center gap-1 mt-1">
+                    <div className="text-[10px] font-bold flex items-center gap-1 mt-1" style={{ color: '#007AFF' }}>
                       <ShieldCheck size={12} /> System Role: {user.role}
                     </div>
                   </div>

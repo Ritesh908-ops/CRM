@@ -56,8 +56,8 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
         {/* Drawer Header */}
         <div className="drawer-header">
           <div className="flex items-center gap-2.5">
-            <span className={`badge ${lead.entityType.toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
-              {lead.entityType.toUpperCase()}
+            <span className={`badge ${(lead.entityType || "").toLowerCase() === 'company' ? 'b-part' : 'b-plant'}`}>
+              {(lead.entityType || "company").toUpperCase()}
             </span>
             <span className="text-xs font-mono font-bold text-gray-500">{lead.entityId}</span>
           </div>
@@ -86,7 +86,7 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
             <div className="profile-section-ttl">
               <Building2 size={14} className="text-indigo-600" /> Lead Overview
             </div>
-            <h2 className="text-lg font-extrabold text-gray-900 leading-snug mb-3">
+            <h2 className="text-lg font-bold text-gray-900 leading-snug mb-3">
               {lead.name}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -132,14 +132,14 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
             <div className="flex flex-col gap-3">
               <div>
                 <div className="dk">Director Name</div>
-                <div className="text-sm font-extrabold text-gray-900 mt-0.5">
+                <div className="text-sm font-bold text-gray-900 mt-0.5">
                   {lead.directorName || 'N/A'}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-200">
                 {/* Mobile Phone */}
-                <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-white flex items-center justify-between shadow-sm" style={{ borderRadius: '13px' }}>
                   {lead.directorMobile ? (
                     <>
                       <a href={`tel:${lead.directorMobile}`} className="flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:underline">
@@ -162,7 +162,7 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
                 </div>
 
                 {/* Email Address */}
-                <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-white flex items-center justify-between shadow-sm" style={{ borderRadius: '13px' }}>
                   {lead.directorEmail ? (
                     <>
                       <a href={`mailto:${lead.directorEmail}`} className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:underline truncate max-w-[170px]">
@@ -191,15 +191,15 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
           <div className="profile-section">
             <div className="profile-section-ttl">Financial Capital</div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-xl bg-white border border-gray-200">
+              <div className="p-3 rounded-xl bg-white shadow-sm" style={{ borderRadius: '13px' }}>
                 <span className="dk">Paid-Up Capital</span>
-                <div className="text-lg font-extrabold text-green-600 mt-0.5">
+                <div className="text-lg font-bold text-green-600 mt-0.5">
                   {formatCurrency(lead.paidUpCapital)}
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-white border border-gray-200">
+              <div className="p-3 rounded-xl bg-white shadow-sm" style={{ borderRadius: '13px' }}>
                 <span className="dk">Authorized Capital</span>
-                <div className="text-lg font-extrabold text-indigo-600 mt-0.5">
+                <div className="text-lg font-bold text-indigo-600 mt-0.5">
                   {formatCurrency(lead.authorizedCapital)}
                 </div>
               </div>
@@ -265,7 +265,7 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
             {lead.notes && lead.notes.length > 0 ? (
               <div className="flex flex-col gap-2.5 pt-1">
                 {lead.notes.map((note) => (
-                  <div key={note.id} className="p-3 rounded-xl bg-white border border-gray-200 shadow-sm flex flex-col gap-1">
+                  <div key={note.id} className="p-3 rounded-xl bg-white shadow-sm flex flex-col gap-1" style={{ borderRadius: '13px' }}>
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-indigo-600">{note.author}</span>
                       <span className="text-[10px] font-semibold text-gray-400">
@@ -277,7 +277,7 @@ export const LeadDetailDrawer: React.FC<LeadDetailDrawerProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-center text-xs text-gray-400 italic bg-white rounded-xl border border-gray-200">
+              <div className="p-6 text-center text-xs text-gray-400 italic bg-white rounded-xl shadow-sm" style={{ borderRadius: '13px' }}>
                 No notes added yet.
               </div>
             )}
