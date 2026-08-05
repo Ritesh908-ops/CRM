@@ -205,7 +205,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       };
 
       if (isSupabaseConfigured && supabase) {
-        await supabase.from('batches').insert({
+        const { error: batchError } = await supabase.from('batches').insert({
           id: batchRecord.id,
           batch_name: batchRecord.batchName,
           upload_date: batchRecord.uploadDate,
@@ -215,6 +215,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           duplicate_strategy_used: batchRecord.duplicateStrategyUsed,
           file_name: batchRecord.fileName
         });
+        if (batchError) throw new Error(`Supabase Batch Insert Error: ${batchError.message}`);
       }
 
       await db.batches.add(batchRecord);

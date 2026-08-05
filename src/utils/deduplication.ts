@@ -4,8 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { CRMLead, DuplicateAnalysisItem, DuplicateAnalysisResult, DuplicateStrategy } from '../types/crm';
 
 function mapLeadToSupabase(lead: CRMLead) {
-  return {
-    id: lead.id,
+  const mapped: any = {
     composite_key: lead.compositeKey,
     entity_id: lead.entityId,
     entity_type: lead.entityType,
@@ -29,6 +28,10 @@ function mapLeadToSupabase(lead: CRMLead) {
     created_at: lead.createdAt,
     updated_at: lead.updatedAt
   };
+  if (lead.id) {
+    mapped.id = lead.id;
+  }
+  return mapped;
 }
 
 /**
@@ -167,11 +170,24 @@ export async function commitImportBatch(
 
   // Execute Supabase batch operations if active
   if (isSupabaseConfigured && supabase) {
+    const CHUNK_SIZE = 1000;
+    
     if (dbAdds.length > 0) {
-      await supabase.from('leads').insert(dbAdds.map(mapLeadToSupabase));
+      const supaAdds = dbAdds.map(mapLeadToSupabase);
+      for (let i = 0; i < supaAdds.length; i += CHUNK_SIZE) {
+        const chunk = supaAdds.slice(i, i + CHUNK_SIZE);
+        const { error } = await supabase.from('leads').insert(chunk);
+        if (error) throw new Error(`Supabase Insert Error: ${error.message} (Details: ${error.details || ''} - Hint: ${error.hint || ''})`);
+      }
     }
+    
     if (dbUpdates.length > 0) {
-      await supabase.from('leads').upsert(dbUpdates.map(mapLeadToSupabase));
+      const supaUpdates = dbUpdates.map(mapLeadToSupabase);
+      for (let i = 0; i < supaUpdates.length; i += CHUNK_SIZE) {
+        const chunk = supaUpdates.slice(i, i + CHUNK_SIZE);
+        const { error } = await supabase.from('leads').upsert(chunk);
+        if (error) throw new Error(`Supabase Upsert Error: ${error.message} (Details: ${error.details || ''} - Hint: ${error.hint || ''})`);
+      }
     }
   }
 
