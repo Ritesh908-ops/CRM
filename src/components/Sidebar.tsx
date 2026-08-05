@@ -134,55 +134,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom Actions & User Profile Section */}
         <div className="sb-bottom-wrapper" style={{ padding: '12px', gap: '10px', flexShrink: 0 }}>
-          {/* Export All Leads */}
-          <button
-            onClick={() => {
-              onExportCSV();
-              if (onCloseMobileMenu) onCloseMobileMenu();
-            }}
-            className="btn btn-ghost w-full flex items-center justify-center gap-2"
-            style={{ padding: '8px 12px', fontSize: '12px', fontWeight: 600 }}
-          >
-            <Download size={14} />
-            <span>Export All Leads (.CSV)</span>
-          </button>
-          
-          {/* Delete All Data */}
-          <button
-            onClick={async () => {
-              const isConfirmed = await confirm({
-                title: 'Delete All Data',
-                message: 'Are you sure you want to completely wipe the entire CRM database? This will delete all leads, batches, and notes permanently. This action cannot be undone.',
-                confirmLabel: 'Yes, Delete Everything',
-                cancelLabel: 'Cancel',
-                variant: 'danger'
-              });
-              
-              if (isConfirmed) {
-                try {
-                  await crmService.deleteAllData();
-                  window.location.reload();
-                } catch (err) {
-                  console.error('Failed to wipe database:', err);
-                  alert('Error wiping database. See console.');
+          {/* Bottom Actions Row: Export and Delete Icons */}
+          <div style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '12px' }}>
+            <button
+              title="Export All Leads (.CSV)"
+              onClick={() => {
+                onExportCSV();
+                if (onCloseMobileMenu) onCloseMobileMenu();
+              }}
+              className="btn btn-ghost"
+              style={{ flex: 1, padding: '10px 0', display: 'flex', justifyContent: 'center' }}
+            >
+              <Download size={18} />
+            </button>
+            
+            <button
+              title="Delete All Data"
+              onClick={async () => {
+                const isConfirmed = await confirm({
+                  title: 'Delete All Data',
+                  message: 'Are you sure you want to completely wipe the entire CRM database? This will delete all leads, batches, and notes permanently. This action cannot be undone.',
+                  confirmLabel: 'Yes, Delete Everything',
+                  cancelLabel: 'Cancel',
+                  variant: 'danger'
+                });
+                
+                if (isConfirmed) {
+                  try {
+                    await crmService.deleteAllData();
+                    window.location.reload();
+                  } catch (err) {
+                    console.error('Failed to wipe database:', err);
+                    alert('Error wiping database. See console.');
+                  }
                 }
-              }
-            }}
-            className="btn w-full flex items-center justify-center gap-2"
-            style={{ 
-              padding: '8px 12px', 
-              fontSize: '12px', 
-              fontWeight: 600,
-              backgroundColor: 'rgba(255, 59, 48, 0.1)',
-              color: 'rgb(255, 59, 48)',
-              border: 'none',
-              marginTop: '4px',
-              marginBottom: '8px'
-            }}
-          >
-            <Trash2 size={14} />
-            <span>Delete All Data</span>
-          </button>
+              }}
+              className="btn"
+              style={{ 
+                flex: 1, 
+                padding: '10px 0', 
+                display: 'flex', 
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                color: 'rgb(255, 59, 48)',
+                border: 'none'
+              }}
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
 
           {/* User Account Profile Card with Rock-Solid Single-Row Flex Layout */}
           {user && (
