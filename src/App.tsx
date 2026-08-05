@@ -152,6 +152,7 @@ function MainCRMApp() {
           onResetSampleData={handleResetSampleData}
           onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
           isMobileMenuOpen={isMobileMenuOpen}
+          goToLogs={() => setActiveTab('batches')}
         />
 
         {/* View Switcher */}

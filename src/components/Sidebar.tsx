@@ -115,14 +115,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
 
             <button
-              onClick={() => handleTabSelect('batches')}
-              className={`ni ${activeTab === 'batches' ? 'active' : ''}`}
-            >
-              <History size={18} />
-              <span className="ni-txt">Monthly Upload Logs</span>
-            </button>
-
-            <button
               onClick={() => handleTabSelect('invoice')}
               className={`ni ${activeTab === 'invoice' ? 'active' : ''}`}
             >

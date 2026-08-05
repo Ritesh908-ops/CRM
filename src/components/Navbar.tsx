@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, RefreshCw, FileText, Upload, Menu, X } from 'lucide-react';
+import { Search, RefreshCw, FileText, Upload, Menu, X, History } from 'lucide-react';
 import { RAW_SAMPLE_CSV_TEXT } from '../mockData/sampleData';
 
 interface NavbarProps {
@@ -9,6 +9,7 @@ interface NavbarProps {
   onResetSampleData: () => void;
   onToggleMobileMenu?: () => void;
   isMobileMenuOpen?: boolean;
+  goToLogs?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,7 +18,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   openImportModal,
   onResetSampleData,
   onToggleMobileMenu,
-  isMobileMenuOpen
+  isMobileMenuOpen,
+  goToLogs
 }) => {
   const handleDownloadSampleCSV = () => {
     const blob = new Blob([RAW_SAMPLE_CSV_TEXT], { type: 'text/tab-separated-values;charset=utf-8;' });
@@ -78,6 +80,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <RefreshCw size={16} />
         </button>
+
+        {/* View Logs */}
+        {goToLogs && (
+          <button
+            onClick={goToLogs}
+            title="Monthly Upload Logs"
+            className="btn btn-ghost"
+            style={{ width: '36px', height: '36px', borderRadius: '980px', padding: 0, background: 'rgba(120,120,128,0.12)', border: 'none' }}
+          >
+            <History size={16} />
+          </button>
+        )}
 
         {/* Upload Monthly CSV (Icon-Only Primary Action) */}
         <button
