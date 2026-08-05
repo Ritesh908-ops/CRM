@@ -1,6 +1,8 @@
 import React from 'react';
 import type { MonthlyBatch } from '../../types/crm';
-import { History, Calendar, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
+import { History, Calendar, CheckCircle2, AlertTriangle, Layers, Trash2 } from 'lucide-react';
+import { crmService } from '../../db/crmService';
+import { useConfirm } from '../ConfirmDialog';
 
 interface BatchHistoryViewProps {
   batches: MonthlyBatch[];
@@ -11,6 +13,22 @@ export const BatchHistoryView: React.FC<BatchHistoryViewProps> = ({
   batches,
   openImportModal
 }) => {
+  const { confirm } = useConfirm();
+
+  const handleClearLogs = async () => {
+    const isConfirmed = await confirm({
+      title: 'Clear Upload Logs',
+      message: 'Are you sure you want to clear all upload logs? This will not delete your leads, but it will erase the history of your uploads. This action cannot be undone.',
+      confirmLabel: 'Clear Logs',
+      cancelLabel: 'Cancel',
+      variant: 'danger'
+    });
+
+    if (isConfirmed) {
+      await crmService.clearBatches();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Card */}
@@ -26,14 +44,23 @@ export const BatchHistoryView: React.FC<BatchHistoryViewProps> = ({
             </p>
           </div>
 
-          {/* Right Action Button */}
-          <button 
-            onClick={openImportModal} 
-            className="btn btn-primary btn-sm shrink-0"
-            style={{ marginLeft: 'auto', flexShrink: 0 }}
-          >
-            <span>Upload Next Month's CSV</span>
-          </button>
+          {/* Right Action Buttons */}
+          <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', flexShrink: 0 }}>
+            <button 
+              onClick={handleClearLogs} 
+              className="btn btn-ghost btn-sm shrink-0"
+              style={{ color: '#FF3B30', backgroundColor: 'rgba(255, 59, 48, 0.1)' }}
+            >
+              <Trash2 size={14} style={{ marginRight: '4px' }} />
+              <span>Clear Logs</span>
+            </button>
+            <button 
+              onClick={openImportModal} 
+              className="btn btn-primary btn-sm shrink-0"
+            >
+              <span>Upload Next Month's CSV</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -182,6 +182,16 @@ export const crmService = {
   },
 
   /**
+   * Clear all upload batches (logs)
+   */
+  async clearBatches(): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('batches').delete().neq('id', '0');
+    }
+    await db.batches.clear();
+  },
+
+  /**
    * Delete lead
    */
   async deleteLead(leadId: number): Promise<void> {
