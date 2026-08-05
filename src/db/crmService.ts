@@ -176,5 +176,22 @@ export const crmService = {
       await db.leads.bulkAdd(INITIAL_SAMPLE_LEADS);
       await db.batches.put(buildInitialBatch());
     });
+  },
+
+  /**
+   * Permanently delete all leads and batches (Danger)
+   */
+  async deleteAllData(): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      // Supabase requires a filter for deletes. .neq('id', -1) will match all records.
+      await supabase.from('leads').delete().neq('id', -1);
+      await supabase.from('batches').delete().neq('id', '0');
+    }
+    
+    // Clear local IndexedDB
+    await db.transaction('rw', db.leads, db.batches, async () => {
+      await db.leads.clear();
+      await db.batches.clear();
+    });
   }
 };

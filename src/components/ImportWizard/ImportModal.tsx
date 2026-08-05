@@ -541,6 +541,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
           {/* STEP 4: Result */}
           {step === 4 && importSummary && (
+            <div className="stack gap-6 tc" style={{ padding: '16px 0' }}>
               <div className="flex-center" style={{ flexDirection: 'column', textAlign: 'center', marginBottom: '24px' }}>
                 <div className="success-icon mb-4">
                   <CheckCircle2 size={32} color="#34C759" />

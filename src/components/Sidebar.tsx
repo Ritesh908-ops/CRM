@@ -9,9 +9,12 @@ import {
   LogOut,
   ChevronUp,
   X,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { crmService } from '../db/crmService';
+import { useConfirm } from './ConfirmDialog';
 
 interface SidebarProps {
   activeTab: 'dashboard' | 'datagrid' | 'batches' | 'invoice';
@@ -31,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobileMenu
 }) => {
   const { user, logout, isSupabaseActive } = useAuth();
+  const { confirm } = useConfirm();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -141,6 +145,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Download size={14} />
             <span>Export All Leads (.CSV)</span>
+          </button>
+          
+          {/* Delete All Data */}
+          <button
+            onClick={async () => {
+              const isConfirmed = await confirm({
+                title: 'Delete All Data',
+                message: 'Are you sure you want to completely wipe the entire CRM database? This will delete all leads, batches, and notes permanently. This action cannot be undone.',
+                confirmLabel: 'Yes, Delete Everything',
+                cancelLabel: 'Cancel',
+                variant: 'danger'
+              });
+              
+              if (isConfirmed) {
+                try {
+                  await crmService.deleteAllData();
+                  window.location.reload();
+                } catch (err) {
+                  console.error('Failed to wipe database:', err);
+                  alert('Error wiping database. See console.');
+                }
+              }
+            }}
+            className="btn w-full flex items-center justify-center gap-2"
+            style={{ 
+              padding: '8px 12px', 
+              fontSize: '12px', 
+              fontWeight: 600,
+              backgroundColor: 'rgba(255, 59, 48, 0.1)',
+              color: 'rgb(255, 59, 48)',
+              border: 'none',
+              marginTop: '4px',
+              marginBottom: '8px'
+            }}
+          >
+            <Trash2 size={14} />
+            <span>Delete All Data</span>
           </button>
 
           {/* User Account Profile Card with Rock-Solid Single-Row Flex Layout */}
