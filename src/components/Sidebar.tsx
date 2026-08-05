@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   BarChart3, 
-  Table, 
-  History, 
+  Table,
   Download,
   Sparkles,
   ShieldCheck,
