@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth, DEMO_EMAIL, DEMO_PASSWORD } from '../../context/AuthContext';
-import { Building2, ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
 
 export const LoginModal: React.FC = () => {
   const { login, isSupabaseActive } = useAuth();
@@ -37,11 +37,11 @@ export const LoginModal: React.FC = () => {
       <div className="login-box">
         {/* Brand Header */}
         <div className="login-logo">
-          <div className="logo-ic">
-            <Building2 size={22} />
+          <div className="logo-ic" style={{ background: 'transparent', boxShadow: 'none' }}>
+            <img src="/logo.svg" alt="Khataview" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '10px' }} />
           </div>
           <div className="logo-txt">
-            <h2>Khatabook CRM</h2>
+            <h2>Khataview CRM</h2>
             <p className="flex-center gap-1">
               <ShieldCheck size={14} className="accent" />
               <span>Admin Portal Access</span>

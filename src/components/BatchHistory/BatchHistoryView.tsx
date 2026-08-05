@@ -43,7 +43,7 @@ export const BatchHistoryView: React.FC<BatchHistoryViewProps> = ({
           batches.map((batch) => (
             <div key={batch.id} className="fsec">
               {/* Batch Card Header Row */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', marginBottom: '16px', borderBottom: '1px solid #E5E7EB' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingBottom: '12px', marginBottom: '16px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
                 <h3 className="text-base font-extrabold text-gray-900">{batch.batchName}</h3>
 
                 {/* Upload Timestamp (Moved to Far Right inside user's red box) */}

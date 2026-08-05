@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn({
         id: 'admin-local',
         email: DEMO_EMAIL,
-        name: 'Khatabook Admin',
+        name: 'Khataview Admin',
         role: 'Admin'
       });
       return { success: true };

@@ -15,11 +15,14 @@ import { LeadDetailDrawer } from './components/DetailDrawer/LeadDetailDrawer';
 import { ImportModal } from './components/ImportWizard/ImportModal';
 import { BatchHistoryView } from './components/BatchHistory/BatchHistoryView';
 import { LoginModal } from './components/Auth/LoginModal';
+import { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
+import { InvoiceGeneratorView } from './components/Invoice/InvoiceGeneratorView';
 
 function MainCRMApp() {
   const { isAuthenticated } = useAuth();
+  const { confirm } = useConfirm();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'datagrid' | 'batches'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'datagrid' | 'batches' | 'invoice'>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBatch, setSelectedBatch] = useState<string>('');
 
@@ -61,7 +64,14 @@ function MainCRMApp() {
 
   // Delete Lead
   const handleDeleteLead = async (leadId: number) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
+    const confirmed = await confirm({
+      title: 'Delete Lead',
+      message: 'Are you sure you want to delete this lead? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger'
+    });
+    
+    if (confirmed) {
       await crmService.deleteLead(leadId);
       setSelectedLeadId(null);
     }
@@ -104,7 +114,14 @@ function MainCRMApp() {
 
   // Reset Sample Data
   const handleResetSampleData = async () => {
-    if (window.confirm('Reset database to initial sample records?')) {
+    const confirmed = await confirm({
+      title: 'Reset Database',
+      message: 'Are you sure you want to reset the database to the initial sample records? All your current data will be lost.',
+      confirmLabel: 'Reset',
+      variant: 'warning'
+    });
+
+    if (confirmed) {
       await crmService.resetToSampleData();
       setSelectedLeadId(null);
     }
@@ -173,6 +190,10 @@ function MainCRMApp() {
                   openImportModal={() => setIsImportModalOpen(true)}
                 />
               )}
+
+              {activeTab === 'invoice' && (
+                <InvoiceGeneratorView />
+              )}
             </>
           )}
         </div>
@@ -202,7 +223,9 @@ function MainCRMApp() {
 export function App() {
   return (
     <AuthProvider>
-      <MainCRMApp />
+      <ConfirmProvider>
+        <MainCRMApp />
+      </ConfirmProvider>
     </AuthProvider>
   );
 }
