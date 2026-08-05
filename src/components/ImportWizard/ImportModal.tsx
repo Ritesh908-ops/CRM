@@ -25,6 +25,7 @@ import {
 import { analyzeDuplicates, commitImportBatch } from '../../utils/deduplication';
 import type { DuplicateAnalysisResult, DuplicateStrategy } from '../../types/crm';
 import { db } from '../../db/database';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { RAW_SAMPLE_CSV_TEXT } from '../../mockData/sampleData';
 
 interface ImportModalProps {
@@ -192,7 +193,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       const summary = await commitImportBatch(analysisResult, duplicateStrategy);
       setImportSummary(summary);
 
-      await db.batches.add({
+      const batchRecord = {
         id: `batch-${Date.now()}`,
         batchName,
         uploadDate: new Date().toISOString(),
@@ -201,7 +202,22 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         duplicateRecordsCount: analysisResult.duplicateCount,
         duplicateStrategyUsed: duplicateStrategy,
         fileName: file ? file.name : 'Pasted Text / Sample.csv'
-      });
+      };
+
+      if (isSupabaseConfigured && supabase) {
+        await supabase.from('batches').insert({
+          id: batchRecord.id,
+          batch_name: batchRecord.batchName,
+          upload_date: batchRecord.uploadDate,
+          total_rows_in_file: batchRecord.totalRowsInFile,
+          new_records_count: batchRecord.newRecordsCount,
+          duplicate_records_count: batchRecord.duplicateRecordsCount,
+          duplicate_strategy_used: batchRecord.duplicateStrategyUsed,
+          file_name: batchRecord.fileName
+        });
+      }
+
+      await db.batches.add(batchRecord);
 
       setErrors([]);
       setStep(4);

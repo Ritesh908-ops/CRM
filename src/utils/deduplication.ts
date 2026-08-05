@@ -1,5 +1,35 @@
 import { db } from '../db/database';
+import { crmService } from '../db/crmService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { CRMLead, DuplicateAnalysisItem, DuplicateAnalysisResult, DuplicateStrategy } from '../types/crm';
+
+function mapLeadToSupabase(lead: CRMLead) {
+  return {
+    id: lead.id,
+    composite_key: lead.compositeKey,
+    entity_id: lead.entityId,
+    entity_type: lead.entityType,
+    name: lead.name,
+    state: lead.state,
+    district: lead.district,
+    roc: lead.roc,
+    nic_code: lead.nicCode,
+    nic_label: lead.nicLabel,
+    class_of_company: lead.classOfCompany,
+    date_of_incorporation: lead.dateOfIncorporation,
+    paid_up_capital: lead.paidUpCapital,
+    email: lead.email,
+    director_name: lead.directorName,
+    director_email: lead.directorEmail,
+    director_mobile: lead.directorMobile,
+    authorized_capital: lead.authorizedCapital,
+    status: lead.status,
+    notes: lead.notes,
+    batch_id: lead.batchId,
+    created_at: lead.createdAt,
+    updated_at: lead.updatedAt
+  };
+}
 
 /**
  * Analyzes incoming items against current DB records to detect duplicates
@@ -7,7 +37,7 @@ import type { CRMLead, DuplicateAnalysisItem, DuplicateAnalysisResult, Duplicate
 export async function analyzeDuplicates(
   incomingItems: Omit<CRMLead, 'id' | 'createdAt' | 'updatedAt' | 'notes'>[]
 ): Promise<DuplicateAnalysisResult> {
-  const existingLeads = await db.leads.toArray();
+  const existingLeads = await crmService.getLeads();
   const existingMap = new Map<string, CRMLead>();
 
   existingLeads.forEach(lead => {
@@ -28,7 +58,7 @@ export async function analyzeDuplicates(
 
     if (existing || seenInThisFile.has(item.compositeKey)) {
       duplicateItems.push({
-        incomingRecord: item,
+        incomingRecord: item as CRMLead, // Casting as we don't have id/dates yet, they will be generated
         existingRecord: existing,
         isDuplicate: true,
         statusConflict: Boolean(existing && existing.status !== 'New')
@@ -48,7 +78,7 @@ export async function analyzeDuplicates(
         ],
         createdAt: now,
         updatedAt: now
-      };
+      } as CRMLead;
       newItems.push(fullLead);
     }
   });
@@ -63,7 +93,7 @@ export async function analyzeDuplicates(
 }
 
 /**
- * Commits the batch to IndexedDB applying the user's chosen duplicate strategy
+ * Commits the batch to IndexedDB (and Supabase if configured) applying the user's chosen duplicate strategy
  */
 export async function commitImportBatch(
   analysis: DuplicateAnalysisResult,
@@ -74,10 +104,11 @@ export async function commitImportBatch(
   let skippedCount = 0;
 
   const now = new Date().toISOString();
+  const dbUpdates: CRMLead[] = [];
+  const dbAdds: CRMLead[] = [...analysis.newItems];
 
   // 1. Add all brand new items
   if (analysis.newItems.length > 0) {
-    await db.leads.bulkAdd(analysis.newItems);
     addedCount += analysis.newItems.length;
   }
 
@@ -90,9 +121,11 @@ export async function commitImportBatch(
       // update, so the later copy is dropped.
       skippedCount++;
     } else if (strategy === 'update' && dup.existingRecord && dup.existingRecord.id) {
-      const updatedLead: Partial<CRMLead> = {
-        ...dup.incomingRecord,
+      const updatedLead: CRMLead = {
+        ...(dup.incomingRecord as any),
+        id: dup.existingRecord.id, // KEEP the existing ID to update it
         status: dup.existingRecord.status, // Preserve pipeline status
+        compositeKey: dup.existingRecord.compositeKey,
         notes: [
           ...dup.existingRecord.notes,
           {
@@ -102,15 +135,17 @@ export async function commitImportBatch(
             author: 'System'
           }
         ],
+        createdAt: dup.existingRecord.createdAt,
         updatedAt: now
       };
-      await db.leads.update(dup.existingRecord.id, updatedLead);
+      
+      dbUpdates.push(updatedLead);
       updatedCount++;
     } else if (strategy === 'keep_all') {
       // Index keeps the key unique even when several variants land in the same millisecond.
       const newVariantKey = `${dup.incomingRecord.compositeKey}_DUP_${Date.now()}_${dupIndex}`;
       const duplicateVariant: CRMLead = {
-        ...dup.incomingRecord,
+        ...(dup.incomingRecord as any),
         status: dup.existingRecord?.status || 'New',
         compositeKey: newVariantKey,
         notes: [
@@ -124,9 +159,30 @@ export async function commitImportBatch(
         createdAt: now,
         updatedAt: now
       };
-      await db.leads.add(duplicateVariant);
+      
+      dbAdds.push(duplicateVariant);
       addedCount++;
     }
+  }
+
+  // Execute Supabase batch operations if active
+  if (isSupabaseConfigured && supabase) {
+    if (dbAdds.length > 0) {
+      await supabase.from('leads').insert(dbAdds.map(mapLeadToSupabase));
+    }
+    if (dbUpdates.length > 0) {
+      await supabase.from('leads').upsert(dbUpdates.map(mapLeadToSupabase));
+    }
+  }
+
+  // Execute IndexedDB batch operations
+  if (dbAdds.length > 0) {
+    await db.leads.bulkAdd(dbAdds);
+  }
+  
+  if (dbUpdates.length > 0) {
+    // Dexie bulkPut acts like upsert and updates existing records by primary key (id)
+    await db.leads.bulkPut(dbUpdates);
   }
 
   return { added: addedCount, updated: updatedCount, skipped: skippedCount };
