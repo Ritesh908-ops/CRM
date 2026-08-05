@@ -82,6 +82,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Enter both an email address and a password.' };
     }
 
+    // Always allow the local demo account to sign in, even if Supabase is configured.
+    if (inputEmail === DEMO_EMAIL && inputPassword === DEMO_PASSWORD) {
+      signIn({
+        id: 'admin-local',
+        email: DEMO_EMAIL,
+        name: 'Khataview Admin',
+        role: 'Admin'
+      });
+      return { success: true };
+    }
+
     // Supabase is the source of truth whenever it is configured.
     if (isSupabaseConfigured && supabase) {
       try {
@@ -110,17 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           error: err instanceof Error ? err.message : 'Could not reach the authentication service.'
         };
       }
-    }
-
-    // Local mode: the built-in demo account is the only credential that works.
-    if (inputEmail === DEMO_EMAIL && inputPassword === DEMO_PASSWORD) {
-      signIn({
-        id: 'admin-local',
-        email: DEMO_EMAIL,
-        name: 'Khataview Admin',
-        role: 'Admin'
-      });
-      return { success: true };
     }
 
     return {
