@@ -12,11 +12,15 @@ export const crmService = {
    * Fetch all CRM leads
    */
   async getLeads(): Promise<CRMLead[]> {
+    // Track dependency for Dexie so useLiveQuery automatically re-runs when local DB is mutated
+    await db.leads.limit(1).toArray();
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(15000); // Bypass Supabase's default 1,000 row limit
 
       if (error) {
         console.error('Supabase fetch error, falling back to IndexedDB:', error);
@@ -58,11 +62,15 @@ export const crmService = {
    * Fetch all monthly batches
    */
   async getBatches(): Promise<MonthlyBatch[]> {
+    // Track dependency for Dexie so useLiveQuery automatically re-runs when local DB is mutated
+    await db.batches.limit(1).toArray();
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('batches')
         .select('*')
-        .order('upload_date', { ascending: false });
+        .order('upload_date', { ascending: false })
+        .limit(15000);
 
       if (!error && data) {
         return data.map(b => ({
