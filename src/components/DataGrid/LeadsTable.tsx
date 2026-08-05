@@ -14,7 +14,8 @@ import {
   Eye,
   MapPin,
   Building2,
-  Search
+  Search,
+  MessageCircle
 } from 'lucide-react';
 
 interface LeadsTableProps {
@@ -366,6 +367,7 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                     <ArrowUpDown size={12} className="text-gray-400" />
                   </div>
                 </th>
+                <th className="tc" style={{ padding: '12px 16px' }}>REACH OUT</th>
                 <th className="tc" style={{ padding: '12px 16px' }}>ACTION</th>
               </tr>
             </thead>
@@ -483,6 +485,36 @@ export const LeadsTable: React.FC<LeadsTableProps> = ({
                           <option value="Converted">Converted</option>
                           <option value="Unresponsive">Unresponsive</option>
                         </select>
+                      </td>
+
+                      {/* Reach Out Buttons */}
+                      <td className="tc" style={{ padding: '14px 16px', verticalAlign: 'top' }}>
+                        <div className="flex items-center gap-2 justify-center">
+                          {lead.directorMobile ? (
+                            <>
+                              <a
+                                href={`tel:${lead.directorMobile}`}
+                                className="btn btn-ghost btn-sm"
+                                style={{ color: '#007AFF', padding: '6px' }}
+                                title="Call"
+                              >
+                                <Phone size={15} />
+                              </a>
+                              <a
+                                href={`https://wa.me/${lead.directorMobile.replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-ghost btn-sm"
+                                style={{ color: '#25D366', padding: '6px' }}
+                                title="WhatsApp"
+                              >
+                                <MessageCircle size={15} />
+                              </a>
+                            </>
+                          ) : (
+                            <span style={{ color: 'rgba(60,60,67,0.3)', fontSize: '12px' }}>-</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Action Button */}
