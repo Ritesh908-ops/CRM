@@ -70,41 +70,39 @@ export const InvoiceGeneratorView: React.FC = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="fg">
-            <label>Invoice Number</label>
-            <input type="text" value={invoiceNo} onChange={e => setInvoiceNo(e.target.value)} placeholder="INV-001" />
+            <label className="text-xs font-semibold mb-1">Invoice Number</label>
+            <input type="text" value={invoiceNo} onChange={e => setInvoiceNo(e.target.value)} placeholder="INV-001" style={{ padding: '6px 10px', fontSize: '13px' }} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="fg">
-              <label>Date</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-            </div>
-            <div className="fg">
-              <label>Due Date</label>
-              <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-            </div>
+          <div className="fg">
+            <label className="text-xs font-semibold mb-1">Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ padding: '6px 10px', fontSize: '13px' }} />
+          </div>
+          <div className="fg">
+            <label className="text-xs font-semibold mb-1">Due Date</label>
+            <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={{ padding: '6px 10px', fontSize: '13px' }} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-5">
           {/* Bill From */}
-          <div className="fg p-4 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
-            <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-tight">Bill From (Your Details)</h3>
-            <div className="grid grid-cols-1 gap-4">
-              <input type="text" value={billFromName} onChange={e => setBillFromName(e.target.value)} placeholder="Your Company Name" />
-              <input type="email" value={billFromEmail} onChange={e => setBillFromEmail(e.target.value)} placeholder="Your Email Address" />
-              <textarea value={billFromAddress} onChange={e => setBillFromAddress(e.target.value)} placeholder="Your Address" rows={2} />
+          <div className="fg p-3 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
+            <h3 className="text-xs font-bold mb-2 text-gray-500 uppercase tracking-tight">Bill From (Your Details)</h3>
+            <div className="grid grid-cols-1 gap-2">
+              <input type="text" value={billFromName} onChange={e => setBillFromName(e.target.value)} placeholder="Your Company Name" style={{ padding: '6px 10px', fontSize: '13px' }} />
+              <input type="email" value={billFromEmail} onChange={e => setBillFromEmail(e.target.value)} placeholder="Your Email Address" style={{ padding: '6px 10px', fontSize: '13px' }} />
+              <textarea value={billFromAddress} onChange={e => setBillFromAddress(e.target.value)} placeholder="Your Address" rows={2} style={{ padding: '6px 10px', fontSize: '13px', resize: 'none' }} />
             </div>
           </div>
           
           {/* Bill To */}
-          <div className="fg p-4 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
-            <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-tight">Bill To (Client Details)</h3>
-            <div className="grid grid-cols-1 gap-4">
-              <input type="text" value={billToName} onChange={e => setBillToName(e.target.value)} placeholder="Company / Client Name" />
-              <input type="email" value={billToEmail} onChange={e => setBillToEmail(e.target.value)} placeholder="Email Address" />
-              <textarea value={billToAddress} onChange={e => setBillToAddress(e.target.value)} placeholder="Billing Address" rows={2} />
+          <div className="fg p-3 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
+            <h3 className="text-xs font-bold mb-2 text-gray-500 uppercase tracking-tight">Bill To (Client Details)</h3>
+            <div className="grid grid-cols-1 gap-2">
+              <input type="text" value={billToName} onChange={e => setBillToName(e.target.value)} placeholder="Company / Client Name" style={{ padding: '6px 10px', fontSize: '13px' }} />
+              <input type="email" value={billToEmail} onChange={e => setBillToEmail(e.target.value)} placeholder="Email Address" style={{ padding: '6px 10px', fontSize: '13px' }} />
+              <textarea value={billToAddress} onChange={e => setBillToAddress(e.target.value)} placeholder="Billing Address" rows={2} style={{ padding: '6px 10px', fontSize: '13px', resize: 'none' }} />
             </div>
           </div>
         </div>
