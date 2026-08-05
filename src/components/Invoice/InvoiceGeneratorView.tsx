@@ -16,6 +16,8 @@ export const InvoiceGeneratorView: React.FC = () => {
   const [billFromName, setBillFromName] = useState('');
   const [billFromAddress, setBillFromAddress] = useState('');
   const [billFromEmail, setBillFromEmail] = useState('');
+  
+  const [billToName, setBillToName] = useState('');
   const [billToAddress, setBillToAddress] = useState('');
   const [billToEmail, setBillToEmail] = useState('');
   
