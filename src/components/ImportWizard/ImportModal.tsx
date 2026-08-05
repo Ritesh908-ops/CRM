@@ -57,6 +57,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   const [analysisResult, setAnalysisResult] = useState<DuplicateAnalysisResult | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [importSummary, setImportSummary] = useState<{ added: number; updated: number; skipped: number } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Re-projects the retained rows on every mapping change so the wizard can show
   // a live "N rows will import" count before anything is committed.
@@ -85,6 +86,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     setErrors([]);
     setIsProcessing(false);
     setDuplicateStrategy('skip');
+    setUploadProgress(0);
   };
 
   const resetAndClose = () => {
@@ -188,9 +190,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   const handleCommitImport = async () => {
     if (!analysisResult) return;
     setIsProcessing(true);
+    setUploadProgress(0);
 
     try {
-      const summary = await commitImportBatch(analysisResult, duplicateStrategy);
+      const summary = await commitImportBatch(
+        analysisResult, 
+        duplicateStrategy,
+        (progress) => setUploadProgress(progress)
+      );
       setImportSummary(summary);
 
       const batchRecord = {
@@ -510,20 +517,36 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   </div>
                 </div>
               )}
+              
+              {isProcessing && uploadProgress > 0 && (
+                <div style={{ marginTop: '24px', padding: '16px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span className="text-sm font-semibold text-gray-700">Uploading to Cloud Database...</span>
+                    <span className="text-sm font-bold" style={{ color: '#007AFF' }}>{uploadProgress}%</span>
+                  </div>
+                  <div style={{ height: '8px', background: '#E5E5EA', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div 
+                      style={{ 
+                        height: '100%', 
+                        background: '#007AFF', 
+                        width: `${uploadProgress}%`,
+                        transition: 'width 0.3s ease-out'
+                      }} 
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* STEP 4: Result */}
           {step === 4 && importSummary && (
-            <div className="stack gap-6 tc" style={{ padding: '16px 0' }}>
-              <div className="success-ring">
-                <CheckCircle2 size={28} />
-              </div>
-              <div>
-                <h4 className="text-lg fwb">Import Batch Successful</h4>
-                <p className="text-xs muted" style={{ marginTop: '4px' }}>
-                  Your corporate dataset has been committed to the CRM database.
-                </p>
+              <div className="flex-center" style={{ flexDirection: 'column', textAlign: 'center', marginBottom: '24px' }}>
+                <div className="success-icon mb-4">
+                  <CheckCircle2 size={32} color="#34C759" />
+                </div>
+                <h3 className="text-xl font-bold">Cloud Import Successful (Supabase Sync)</h3>
+                <p className="muted text-sm mt-1">Your corporate dataset has been committed to the CRM database and the cloud.</p>
               </div>
 
               <div className="stats stats-3">

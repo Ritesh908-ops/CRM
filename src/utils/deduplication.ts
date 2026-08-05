@@ -100,7 +100,8 @@ export async function analyzeDuplicates(
  */
 export async function commitImportBatch(
   analysis: DuplicateAnalysisResult,
-  strategy: DuplicateStrategy
+  strategy: DuplicateStrategy,
+  onProgress?: (progress: number) => void
 ): Promise<{ added: number; updated: number; skipped: number }> {
   let addedCount = 0;
   let updatedCount = 0;
@@ -171,13 +172,18 @@ export async function commitImportBatch(
   // Execute Supabase batch operations if active
   if (isSupabaseConfigured && supabase) {
     const CHUNK_SIZE = 1000;
-    
+    const totalOperations = Math.ceil(dbAdds.length / CHUNK_SIZE) + Math.ceil(dbUpdates.length / CHUNK_SIZE) + 2; // +2 for Dexie operations
+    let currentOperation = 0;
+
     if (dbAdds.length > 0) {
       const supaAdds = dbAdds.map(mapLeadToSupabase);
       for (let i = 0; i < supaAdds.length; i += CHUNK_SIZE) {
         const chunk = supaAdds.slice(i, i + CHUNK_SIZE);
         const { error } = await supabase.from('leads').insert(chunk);
         if (error) throw new Error(`Supabase Insert Error: ${error.message} (Details: ${error.details || ''} - Hint: ${error.hint || ''})`);
+        
+        currentOperation++;
+        if (onProgress) onProgress(Math.round((currentOperation / totalOperations) * 100));
       }
     }
     
@@ -187,18 +193,36 @@ export async function commitImportBatch(
         const chunk = supaUpdates.slice(i, i + CHUNK_SIZE);
         const { error } = await supabase.from('leads').upsert(chunk);
         if (error) throw new Error(`Supabase Upsert Error: ${error.message} (Details: ${error.details || ''} - Hint: ${error.hint || ''})`);
+        
+        currentOperation++;
+        if (onProgress) onProgress(Math.round((currentOperation / totalOperations) * 100));
       }
     }
-  }
+    
+    // Dexie ops
+    if (dbAdds.length > 0) {
+      await db.leads.bulkAdd(dbAdds);
+    }
+    currentOperation++;
+    if (onProgress) onProgress(Math.round((currentOperation / totalOperations) * 100));
 
-  // Execute IndexedDB batch operations
-  if (dbAdds.length > 0) {
-    await db.leads.bulkAdd(dbAdds);
-  }
-  
-  if (dbUpdates.length > 0) {
-    // Dexie bulkPut acts like upsert and updates existing records by primary key (id)
-    await db.leads.bulkPut(dbUpdates);
+    if (dbUpdates.length > 0) {
+      await db.leads.bulkPut(dbUpdates);
+    }
+    currentOperation++;
+    if (onProgress) onProgress(100);
+    
+  } else {
+    // Execute IndexedDB batch operations only
+    if (dbAdds.length > 0) {
+      await db.leads.bulkAdd(dbAdds);
+    }
+    if (onProgress) onProgress(50);
+    
+    if (dbUpdates.length > 0) {
+      await db.leads.bulkPut(dbUpdates);
+    }
+    if (onProgress) onProgress(100);
   }
 
   return { added: addedCount, updated: updatedCount, skipped: skippedCount };
