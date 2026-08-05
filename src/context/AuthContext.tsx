@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Built-in account for running the CRM without a Supabase project. It is a
  * local-only convenience — configure Supabase for any real deployment.
  */
-export const DEMO_EMAIL = 'admin@khatabook.com';
+export const DEMO_EMAIL = 'admin@khataview.com';
 export const DEMO_PASSWORD = 'admin123';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           const authUser: CRMUser = {
             id: session.user.id,
-            email: session.user.email || 'admin@khatabook.com',
+            email: session.user.email || 'admin@khataview.com',
             name: session.user.user_metadata?.name || 'Supabase Admin',
             role: 'Admin'
           };
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           const authUser: CRMUser = {
             id: session.user.id,
-            email: session.user.email || 'admin@khatabook.com',
+            email: session.user.email || 'admin@khataview.com',
             name: session.user.user_metadata?.name || 'Supabase Admin',
             role: 'Admin'
           };

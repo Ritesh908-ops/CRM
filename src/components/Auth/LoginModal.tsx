@@ -69,7 +69,7 @@ export const LoginModal: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@khatabook.com"
+                placeholder="admin@khataview.com"
                 style={{ paddingLeft: '32px' }}
               />
             </div>
