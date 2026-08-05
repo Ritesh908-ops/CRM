@@ -3,7 +3,6 @@ import {
   BarChart3, 
   Table,
   Download,
-  Sparkles,
   ShieldCheck,
   LogOut,
   ChevronUp,
@@ -66,17 +65,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside className={`sb ${isMobileMenuOpen ? 'open' : ''}`}>
         {/* Brand Header */}
         <div className="sb-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '64px', padding: '0 16px', borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="sb-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
-              <img src="/logo.svg" alt="Khataview" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '10px' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
-              <span className="sb-name" style={{ fontSize: '14.5px', fontWeight: 700, color: '#000', whiteSpace: 'nowrap' }}>Khataview CRM</span>
-              <span className="sb-sub" style={{ fontSize: '10.5px', color: 'rgba(60,60,67,0.6)', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', whiteSpace: 'nowrap' }}>
-                <Sparkles size={11} style={{ color: '#007AFF' }} />
-                <span>Monthly Data Hub</span>
-              </span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.png" alt="Khataview CRM" style={{ height: '40px', objectFit: 'contain' }} />
           </div>
 
           {/* Close button ONLY rendered on mobile when drawer is open */}

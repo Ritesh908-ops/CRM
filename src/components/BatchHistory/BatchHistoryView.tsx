@@ -25,7 +25,13 @@ export const BatchHistoryView: React.FC<BatchHistoryViewProps> = ({
     });
 
     if (isConfirmed) {
-      await crmService.clearBatches();
+      try {
+        await crmService.clearBatches();
+        window.location.reload();
+      } catch (e) {
+        console.error('Failed to clear logs:', e);
+        alert('Error clearing logs');
+      }
     }
   };
 
