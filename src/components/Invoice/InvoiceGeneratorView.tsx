@@ -13,7 +13,9 @@ export const InvoiceGeneratorView: React.FC = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
   
-  const [billToName, setBillToName] = useState('');
+  const [billFromName, setBillFromName] = useState('');
+  const [billFromAddress, setBillFromAddress] = useState('');
+  const [billFromEmail, setBillFromEmail] = useState('');
   const [billToAddress, setBillToAddress] = useState('');
   const [billToEmail, setBillToEmail] = useState('');
   
@@ -83,12 +85,25 @@ export const InvoiceGeneratorView: React.FC = () => {
           </div>
         </div>
 
-        <div className="fg mb-6 p-4 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
-          <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-tight">Bill To</h3>
-          <div className="grid grid-cols-1 gap-4">
-            <input type="text" value={billToName} onChange={e => setBillToName(e.target.value)} placeholder="Company / Client Name" />
-            <input type="email" value={billToEmail} onChange={e => setBillToEmail(e.target.value)} placeholder="Email Address" />
-            <textarea value={billToAddress} onChange={e => setBillToAddress(e.target.value)} placeholder="Billing Address" rows={2} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Bill From */}
+          <div className="fg p-4 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
+            <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-tight">Bill From (Your Details)</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <input type="text" value={billFromName} onChange={e => setBillFromName(e.target.value)} placeholder="Your Company Name" />
+              <input type="email" value={billFromEmail} onChange={e => setBillFromEmail(e.target.value)} placeholder="Your Email Address" />
+              <textarea value={billFromAddress} onChange={e => setBillFromAddress(e.target.value)} placeholder="Your Address" rows={2} />
+            </div>
+          </div>
+          
+          {/* Bill To */}
+          <div className="fg p-4 rounded-xl" style={{ background: 'rgba(242,242,247,0.6)', border: '0.5px solid rgba(60,60,67,0.12)' }}>
+            <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-tight">Bill To (Client Details)</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <input type="text" value={billToName} onChange={e => setBillToName(e.target.value)} placeholder="Company / Client Name" />
+              <input type="email" value={billToEmail} onChange={e => setBillToEmail(e.target.value)} placeholder="Email Address" />
+              <textarea value={billToAddress} onChange={e => setBillToAddress(e.target.value)} placeholder="Billing Address" rows={2} />
+            </div>
           </div>
         </div>
 
@@ -174,8 +189,18 @@ export const InvoiceGeneratorView: React.FC = () => {
       <div className="print-only-preview print-document bg-white" style={{ display: 'none' }}>
         <div className="print-header flex justify-between items-start mb-8 pb-6" style={{ borderBottom: '2px solid #F2F2F7' }}>
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#007AFF', letterSpacing: '-0.5px' }}>Khataview</h1>
-            <p className="text-sm mt-1" style={{ color: 'rgba(60,60,67,0.6)' }}>Corporate Dataset & Smart Deduplication Hub</p>
+            {billFromName ? (
+              <>
+                <h1 className="text-3xl font-bold" style={{ color: '#007AFF', letterSpacing: '-0.5px' }}>{billFromName}</h1>
+                {billFromAddress && <p className="whitespace-pre-wrap text-sm mt-1" style={{ color: 'rgba(60,60,67,0.6)' }}>{billFromAddress}</p>}
+                {billFromEmail && <p className="text-sm mt-1" style={{ color: 'rgba(60,60,67,0.6)' }}>{billFromEmail}</p>}
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold" style={{ color: '#007AFF', letterSpacing: '-0.5px' }}>Khataview</h1>
+                <p className="text-sm mt-1" style={{ color: 'rgba(60,60,67,0.6)' }}>Corporate Dataset & Smart Deduplication Hub</p>
+              </>
+            )}
           </div>
           <div className="text-right">
             <h2 className="text-2xl font-bold" style={{ color: '#000' }}>INVOICE</h2>
